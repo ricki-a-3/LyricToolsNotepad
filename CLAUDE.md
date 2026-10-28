@@ -54,15 +54,29 @@ installable by non-technical users, no dependency on Notepad++ or PythonScript.
 - Dark theme by default
 - Toolbar + keyboard shortcuts for each mode, Synonyms, Deep Search
 
+## App layout
+- `app.py` entry + settings location (portable if `portable.txt` sits next
+  to the exe -> `settings.ini` beside it; else per-user INI).
+- `mainwindow.py` menus/toolbar/files/modes; `editor.py` QPlainTextEdit +
+  gutter + whole-word selection detection (debounced 180ms, waits for mouse
+  release); `popup.py` dropdown; `lookup.py` worker threads (offline and
+  network executors kept separate); `textutil.py` pure helpers; `theme.py`.
+- Shortcuts: Ctrl+1/2/3 modes, F7 Synonyms, F8 Deep Search, Ctrl+Space
+  rhymes at caret.
+
 ## Commands
-- Tests: `python -m pytest -q` (from repo root)
+- Tests: `python -m pytest -q` (from repo root; GUI tests use pytest-qt,
+  set `QT_QPA_PLATFORM=offscreen` when headless)
+- Portable build (Windows): `build_portable.bat` -> `dist\LyricToolsPP\`
+  + `dist\LyricToolsPP-<ver>-portable-win64.zip`
+- Run from source: `run_dev.bat` or `python -m lyrictools`
 
 ## Milestones
 1. ~~Scaffold, move core into a package, pytest suite passing~~
-2. Editor window, open/save, syllable gutter with colors
-3. Highlight-to-rhyme dropdown + mode switching
-4. Async Synonyms + Deep Search
-5. PyInstaller build, then Inno Setup installer
+2. ~~Editor window, open/save, syllable gutter with colors~~
+3. ~~Highlight-to-rhyme dropdown + mode switching~~
+4. ~~Async Synonyms + Deep Search~~
+5. PyInstaller portable build (`build_portable.bat`) done; Inno Setup installer next
 6. README.md + GitHub release workflow
 
 ## User preferences

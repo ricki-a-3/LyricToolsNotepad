@@ -18,3 +18,8 @@ dist/
 *.spec.bak
 *.egg-info/
 .pytest_cache/
+
+# Build environment / generated
+.venv*/
+packaging/version_info.txt
+settings.ini

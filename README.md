@@ -8,11 +8,33 @@ syllable counts and highlight-to-rhyme suggestions.
 > [`legacy/notepadpp-plugin`](legacy/notepadpp-plugin) with its own
 > installer and README.
 
+## Build a portable exe (Windows)
+
+Needs Python 3.12+ from python.org. From the repo folder:
+
+```
+build_portable.bat
+```
+
+Output: `dist\LyricToolsPP\LyricToolsPP.exe` (run it in place) and a zip
+of that folder to share. The portable copy keeps its settings in
+`settings.ini` next to the exe.
+
+## Using it
+
+- Type lyrics; each line's syllable count shows in the left gutter.
+- Double-click (or drag-select) one word to get rhymes in a dropdown.
+  Enter/click replaces the word; Esc or clicking away closes it.
+- **Ctrl+1 / 2 / 3** — Perfect / Near / Report (both) rhyme mode.
+- **F7** Synonyms, **F8** Deep Search (online, one-shot).
+- **Ctrl+Space** — rhymes for the word at the caret.
+
 ## Development
 
 ```
 pip install -e ".[dev]"
 python -m pytest -q
+python -m lyrictools
 ```
 
 ## License

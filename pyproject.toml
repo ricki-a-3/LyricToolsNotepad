@@ -8,10 +8,10 @@ version = "3.0.0.dev0"
 description = "Standalone lyric-writing app with live syllable counts and rhyme suggestions"
 license = { text = "MIT" }
 requires-python = ">=3.12"
-dependencies = ["PySide6>=6.7"]
+dependencies = ["PySide6-Essentials>=6.7"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pyinstaller>=6"]
+dev = ["pytest>=8", "pytest-qt>=4.4", "pyinstaller>=6"]
 
 [project.gui-scripts]
 lyrictools = "lyrictools.app:main"

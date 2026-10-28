@@ -28,7 +28,6 @@ import io
 import json
 import os
 import re
-import ssl
 from difflib import SequenceMatcher
 
 try:
@@ -483,28 +482,12 @@ def _fetch_datamuse(params, timeout=8):
             encoded[key_name] = value
 
     url = "https://api.datamuse.com/words?" + urlencode(encoded)
-    request = Request(url, headers={"User-Agent": "LyricToolsPP/1.0.5 (Notepad++ PythonScript 2.7)"})
+    request = Request(url, headers={"User-Agent": "LyricToolsPP/3 (+https://www.datamuse.com/api/)"})
 
-    response = None
-    try:
-        response = urlopen(request, timeout=timeout)
+    # Python 3.12+ verifies TLS against the OS certificate store; no
+    # unverified-context retry (that was a workaround for PythonScript 2.7).
+    with urlopen(request, timeout=timeout) as response:
         payload = response.read()
-    except Exception:
-        # Some embedded Python 2.7 builds have an old/missing CA bundle. For this
-        # read-only public API, retry with certificate verification disabled if
-        # the runtime supports SSL contexts.
-        try:
-            context = ssl._create_unverified_context()
-            response = urlopen(request, timeout=timeout, context=context)
-            payload = response.read()
-        except Exception:
-            raise
-    finally:
-        if response is not None:
-            try:
-                response.close()
-            except Exception:
-                pass
 
     if not isinstance(payload, text_type):
         payload = payload.decode("utf-8", "replace")
