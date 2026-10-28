@@ -100,3 +100,7 @@ def test_deep_search_survives_network_failure(monkeypatch):
         raise OSError("no connection")
     monkeypatch.setattr(core, "_fetch_datamuse", _fail)
     assert core.find_words_deep("night", max_results=20), "offline results lost on network error"
+
+
+def test_cmudict_comments_are_not_phonemes():
+    assert core.load_cmu_pronunciations()["aalto"] == [("AA1", "L", "T", "OW2")]

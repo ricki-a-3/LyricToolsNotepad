@@ -1,5 +1,17 @@
 # LyricTools++ — Standalone App
 
+## Direction (Oct 2026)
+The user wants the app to be **100% Rust**. `rust/` is the Rust rewrite
+(egui/eframe + wgpu, single self-contained exe) and is now the main line of
+work; see `rust/README.md`. The Python/PySide6 app in `src/` is the
+reference implementation: `rust/tests/parity.rs` checks the Rust core
+against output generated from the Python core. Keep behaviors below
+identical across both until the Python app is retired.
+
+- Rust tests: `cd rust && cargo test`
+- Windows portable zip: `rust\build_portable.bat` (on Windows) or
+  `rust/package_from_linux.sh` (cross-compile, x86_64-pc-windows-gnu)
+
 ## Goal
 Turn LyricTools++ (a Notepad++ PythonScript plugin, last released as v2.6.0)
 into a standalone Windows `.exe` lyric-writing app. Free and open source (MIT),

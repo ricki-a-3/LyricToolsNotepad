@@ -127,7 +127,8 @@ def load_cmudict(path=None):
                 raw = raw.strip()
                 if not raw or raw.startswith(u";;;"):
                     continue
-                parts = raw.split()
+                # A few entries carry a trailing "# place, danish" style comment.
+                parts = raw.split(u"#", 1)[0].split()
                 if len(parts) < 2:
                     continue
                 word = _VARIANT_RE.sub(u"", parts[0].lower())
@@ -157,7 +158,8 @@ def load_cmu_pronunciations(path=None):
                 raw = raw.strip()
                 if not raw or raw.startswith(u";;;"):
                     continue
-                parts = raw.split()
+                # A few entries carry a trailing "# place, danish" style comment.
+                parts = raw.split(u"#", 1)[0].split()
                 if len(parts) < 2:
                     continue
                 word = _VARIANT_RE.sub(u"", parts[0].lower())
