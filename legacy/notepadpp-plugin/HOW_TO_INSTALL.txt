@@ -1,0 +1,47 @@
+HOW TO INSTALL LyricTools++
+============================
+
+1. Unzip this whole folder somewhere on your computer (Desktop is fine).
+
+2. Double-click "Install_LyricToolsPP.bat".
+
+   Windows might show a blue screen that says "Windows protected your
+   PC". This is normal -- it just means the file isn't from a big
+   company Windows already recognizes, not that anything is wrong.
+   Click "More info", then click "Run anyway".
+
+3. A black window will pop up and walk you through the rest. It will
+   ask one question:
+
+     Start LyricTools++ automatically every time Notepad++ opens? [Y/n]
+
+   Just press Enter to say yes (recommended) -- that way you never have
+   to remember to turn it on. If you'd rather turn it on yourself each
+   time, type "n" and press Enter.
+
+4. When it says "Done!", close the black window (or press any key).
+
+5. If Notepad++ was open, close it completely and open it again.
+
+That's it. Fully highlight (double-click) any word in your lyrics and a
+list of rhymes should pop up.
+
+------------------------------------------------
+Don't have Notepad++'s PythonScript plugin yet?
+------------------------------------------------
+The installer will tell you if it can't find it, with these steps:
+
+  1. Open Notepad++
+  2. Click the "Plugins" menu, then "Plugins Admin"
+  3. Type "PythonScript" in the search box, check its box, click Install
+  4. Let Notepad++ restart when it asks to
+  5. Run Install_LyricToolsPP.bat again
+
+------------------------------------------------
+Something not working?
+------------------------------------------------
+- Make sure Notepad++ is completely closed while you run the installer.
+- Try right-clicking Install_LyricToolsPP.bat and choosing "Run as
+  administrator".
+- INSTALL_FOR_YOUR_NOTEPAD.txt in this same folder has the manual,
+  step-by-step version if the installer isn't working for you.

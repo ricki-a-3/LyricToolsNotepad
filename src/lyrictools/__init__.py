@@ -1,0 +1,2 @@
+"""LyricTools++ standalone app."""
+__version__ = "3.0.0.dev0"

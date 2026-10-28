@@ -1,0 +1,40 @@
+LyricTools++ v2.6.0 - PythonScript for Notepad++
+
+New here? Just run Install_LyricToolsPP.bat (double-click it) and follow
+the prompts -- see HOW_TO_INSTALL.txt for a plain-English walkthrough. The
+steps below are the manual version, for troubleshooting or if you'd rather
+do it by hand.
+
+Install folder for your setup:
+C:\Program Files\Notepad++\plugins\PythonScript\scripts\LyricTool
+(same folder Samples lives in -- not a subfolder)
+
+1. Close Notepad++ completely.
+2. Delete the old LyricTool folder (and its __pycache__ subfolder, if present).
+3. Copy this new LyricTool folder directly into that scripts folder, next
+   to Samples.
+4. Start Notepad++.
+5. Run Plugins > PythonScript > Scripts > LyricTool > LyricToolsPP once.
+   This turns on live syllable counts and arms the rhyme dropdown with
+   Perfect + Near rhymes by default -- nothing else to run.
+6. In your lyrics, fully highlight any word (double-click it, or drag-select
+   just that word). A dropdown appears with rhyme suggestions.
+7. Pick one to replace the word, or press Escape / click elsewhere to
+   dismiss it.
+
+To switch what the rhyme dropdown shows, run one of these once:
+   LyricTools_Rhymes       = only perfect rhymes
+   LyricTools_NearRhymes   = only near/slant rhymes
+   LyricTools_RhymeReport  = perfect + near combined (the default)
+
+Synonyms and Deep Search are different -- run LyricTools_Synonyms or
+LyricTools_DeepSearch EACH TIME you want it for a word (highlight it
+first). Neither stays armed, since both go over the network; that's what
+fixed the freeze/crash from v2.0.0. Deep Search combines the offline
+engine with Datamuse's rhyme data for the biggest possible word pool when
+the regular dropdown doesn't turn up enough on its own.
+
+No pane, no second document, no docked/floating window is created at any
+point -- closing the dropdown (Escape, click away, or just deselect) leaves
+nothing behind.
+
