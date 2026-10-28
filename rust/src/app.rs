@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use eframe::egui::{
-    self, Align2, Color32, FontId, Id, Key, Margin, Modifiers, Order, Pos2, Rect, Sense, TextureHandle, Vec2,
-    text::CCursor, text_selection::CCursorRange,
+    self, Align2, Color32, FontId, Id, Key, Margin, Modifiers, Order, Pos2, Rect, Sense, Vec2, text::CCursor,
+    text_selection::CCursorRange,
 };
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 
@@ -27,23 +27,10 @@ const POPUP_WIDTH: f32 = 260.0;
 const POPUP_MAX_HEIGHT: f32 = 300.0;
 const STATUS_MESSAGE_SECS: f64 = 5.0;
 
-const ICONS: [(&str, &[u8]); 6] = [
-    ("start", include_bytes!("../assets/start.ico")),
-    ("rhymes", include_bytes!("../assets/rhymes.ico")),
-    ("nearrhymes", include_bytes!("../assets/nearrhymes.ico")),
-    ("rhymereport", include_bytes!("../assets/rhymereport.ico")),
-    ("synonyms", include_bytes!("../assets/synonyms.ico")),
-    ("deepsearch", include_bytes!("../assets/deepsearch.ico")),
-];
-
-pub fn decode_icon(bytes: &[u8]) -> Option<egui::ColorImage> {
-    let img = image::load_from_memory(bytes).ok()?.to_rgba8();
-    let size = [img.width() as usize, img.height() as usize];
-    Some(egui::ColorImage::from_rgba_unmultiplied(size, img.as_raw()))
-}
+const APP_ICON: &[u8] = include_bytes!("../assets/start.ico");
 
 pub fn app_icon() -> Option<egui::IconData> {
-    let img = image::load_from_memory(ICONS[0].1).ok()?.to_rgba8();
+    let img = image::load_from_memory(APP_ICON).ok()?.to_rgba8();
     Some(egui::IconData { width: img.width(), height: img.height(), rgba: img.into_raw() })
 }
 
@@ -132,7 +119,6 @@ pub struct LyricApp {
     pending_state: Option<egui::text_edit::TextEditState>,
 
     counts: HashMap<String, u32>,
-    icons: HashMap<&'static str, TextureHandle>,
     status: Option<(String, f64)>,
     prompt: Option<(Mode, String)>,
     allow_close: bool,
@@ -145,12 +131,6 @@ impl LyricApp {
         let ctx = cc.egui_ctx.clone();
         // We handle Ctrl +/- ourselves (editor font size, not whole-UI zoom).
         ctx.options_mut(|o| o.zoom_with_keyboard = false);
-        let icons = ICONS
-            .iter()
-            .filter_map(|(name, bytes)| {
-                decode_icon(bytes).map(|img| (*name, ctx.load_texture(*name, img, egui::TextureOptions::LINEAR)))
-            })
-            .collect();
         let settings_path = settings_path();
         let settings = Settings::load(&settings_path);
         let repaint_ctx = ctx.clone();
@@ -172,7 +152,6 @@ impl LyricApp {
             set_cursor: None,
             pending_state: None,
             counts: HashMap::new(),
-            icons,
             status: None,
             prompt: None,
             allow_close: false,
@@ -645,31 +624,26 @@ impl LyricApp {
 
     fn toolbar(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
-        let icons = self.icons.clone();
         ui.horizontal(|ui| {
-            let tool = |ui: &mut egui::Ui, icon: &str, on: bool, tip: &str| -> bool {
-                let size = Vec2::splat(22.0);
-                let button = match icons.get(icon) {
-                    Some(tex) => egui::Button::image(egui::Image::new((tex.id(), size))),
-                    None => egui::Button::new(&icon[..1]),
-                };
-                ui.add(button.selected(on).min_size(Vec2::splat(30.0))).on_hover_text(tip).clicked()
+            let tool = |ui: &mut egui::Ui, label: &str, on: bool, tip: &str| -> bool {
+                let text = egui::RichText::new(label).size(14.0);
+                ui.add(egui::Button::selectable(on, text).min_size(Vec2::new(0.0, 28.0))).on_hover_text(tip).clicked()
             };
             let mode = self.settings.mode;
-            if tool(ui, "rhymes", mode == Mode::Perfect, "Perfect rhymes (Ctrl+1)") {
+            if tool(ui, "Perfect", mode == Mode::Perfect, "Perfect rhymes (Ctrl+1)") {
                 self.set_mode(&ctx, Mode::Perfect);
             }
-            if tool(ui, "nearrhymes", mode == Mode::Near, "Near / slant rhymes (Ctrl+2)") {
+            if tool(ui, "Near", mode == Mode::Near, "Near / slant rhymes (Ctrl+2)") {
                 self.set_mode(&ctx, Mode::Near);
             }
-            if tool(ui, "rhymereport", mode == Mode::Report, "Perfect + near rhymes (Ctrl+3)") {
+            if tool(ui, "Report", mode == Mode::Report, "Perfect + near rhymes (Ctrl+3)") {
                 self.set_mode(&ctx, Mode::Report);
             }
             ui.separator();
-            if tool(ui, "synonyms", false, "Synonyms for the selected word, online (F7)") {
+            if tool(ui, "Synonyms", false, "Synonyms for the selected word, online (F7)") {
                 self.one_shot(&ctx, Mode::Synonyms);
             }
-            if tool(ui, "deepsearch", false, "Deep Search: offline + Datamuse rhymes, online (F8)") {
+            if tool(ui, "Deep Search", false, "Deep Search: offline + Datamuse rhymes, online (F8)") {
                 self.one_shot(&ctx, Mode::Deep);
             }
         });

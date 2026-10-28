@@ -165,7 +165,11 @@ class MainWindow(QMainWindow):
         tb = QToolBar("Tools", self)
         tb.setObjectName("MainToolbar")
         tb.setMovable(False)
-        tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        for mode, label in ((MODE_PERFECT, "Perfect"), (MODE_NEAR, "Near"), (MODE_REPORT, "Report")):
+            self.mode_actions[mode].setIconText(label)
+        self.act_synonyms.setIconText("Synonyms")
+        self.act_deep.setIconText("Deep Search")
         tb.addActions(list(self.mode_actions.values()))
         tb.addSeparator()
         tb.addActions([self.act_synonyms, self.act_deep])
