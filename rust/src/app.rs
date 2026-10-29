@@ -596,7 +596,7 @@ impl LyricApp {
                 for (mode, label, key) in [
                     (Mode::Perfect, "Perfect Rhymes", "Ctrl+1"),
                     (Mode::Near, "Near Rhymes", "Ctrl+2"),
-                    (Mode::Report, "Rhyme Report (Perfect + Near)", "Ctrl+3"),
+                    (Mode::Report, "Near + Perfect Rhymes", "Ctrl+3"),
                 ] {
                     let on = self.settings.mode == mode;
                     if ui.add(egui::Button::selectable(on, label).shortcut_text(key)).clicked() { self.set_mode(&ctx, mode); }
@@ -636,7 +636,7 @@ impl LyricApp {
             if tool(ui, "Near", mode == Mode::Near, "Near / slant rhymes (Ctrl+2)") {
                 self.set_mode(&ctx, Mode::Near);
             }
-            if tool(ui, "Report", mode == Mode::Report, "Perfect + near rhymes (Ctrl+3)") {
+            if tool(ui, "Near + Perfect", mode == Mode::Report, "Near + perfect rhymes (Ctrl+3)") {
                 self.set_mode(&ctx, Mode::Report);
             }
             ui.separator();

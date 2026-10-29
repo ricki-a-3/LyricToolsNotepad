@@ -33,7 +33,7 @@ impl Mode {
         match self {
             Mode::Perfect => "Perfect Rhymes",
             Mode::Near => "Near / Slant Rhymes",
-            Mode::Report => "Perfect + Near Rhymes",
+            Mode::Report => "Near + Perfect Rhymes",
             Mode::Synonyms => "Synonyms",
             Mode::Deep => "Deep Search",
         }

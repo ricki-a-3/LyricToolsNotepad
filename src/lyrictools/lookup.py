@@ -28,7 +28,7 @@ NETWORK_MODES = (MODE_SYNONYM, MODE_DEEP)
 MODE_TITLES = {
     MODE_PERFECT: "Perfect Rhymes",
     MODE_NEAR: "Near / Slant Rhymes",
-    MODE_REPORT: "Perfect + Near Rhymes",
+    MODE_REPORT: "Near + Perfect Rhymes",
     MODE_SYNONYM: "Synonyms",
     MODE_DEEP: "Deep Search",
 }

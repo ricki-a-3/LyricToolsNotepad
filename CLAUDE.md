@@ -50,7 +50,7 @@ installable by non-technical users, no dependency on Notepad++ or PythonScript.
    opens a dropdown at that word; picking an entry replaces exactly that
    word; Esc / click away / deselect closes it and leaves nothing behind.
    No side panes, no second document.
-3. **Modes**: Perfect / Near / Report (perfect + near, the default) are
+3. **Modes**: Perfect / Near / Near + Perfect (internally "report"; the default) are
    armed and stay armed. Synonyms and Deep Search are one-shot commands.
 4. **Never block the UI thread on the network.** In the plugin, a network
    call on passive highlight froze the editor. Run all Datamuse calls on a

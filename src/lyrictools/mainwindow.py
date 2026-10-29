@@ -100,8 +100,8 @@ class MainWindow(QMainWindow):
         for mode, text, key, icon_name, tip in (
             (MODE_PERFECT, "&Perfect Rhymes", "Ctrl+1", "rhymes", "Highlight a word for perfect rhymes"),
             (MODE_NEAR, "&Near Rhymes", "Ctrl+2", "nearrhymes", "Highlight a word for near / slant rhymes"),
-            (MODE_REPORT, "Rhyme &Report (Perfect + Near)", "Ctrl+3", "rhymereport",
-             "Highlight a word for perfect + near rhymes"),
+            (MODE_REPORT, "Near + Perfect &Rhymes", "Ctrl+3", "rhymereport",
+             "Highlight a word for near + perfect rhymes"),
         ):
             act = self._action(text, lambda _=False, m=mode: self._set_mode(m), key, icon_name, tip, True)
             self.mode_group.addAction(act)
@@ -166,7 +166,7 @@ class MainWindow(QMainWindow):
         tb.setObjectName("MainToolbar")
         tb.setMovable(False)
         tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
-        for mode, label in ((MODE_PERFECT, "Perfect"), (MODE_NEAR, "Near"), (MODE_REPORT, "Report")):
+        for mode, label in ((MODE_PERFECT, "Perfect"), (MODE_NEAR, "Near"), (MODE_REPORT, "Near + Perfect")):
             self.mode_actions[mode].setIconText(label)
         self.act_synonyms.setIconText("Synonyms")
         self.act_deep.setIconText("Deep Search")
