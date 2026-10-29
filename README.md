@@ -1,43 +1,88 @@
 # LyricTools++
 
-A free, open-source Windows app for rap and lyric writing: live per-line
-syllable counts and highlight-to-rhyme suggestions.
+A free, open-source lyric notepad for Windows, built for rap and songwriting:
+live syllable counts on every line, rhymes for any word you highlight, and
+titled sections you can fold away while you work on the next verse.
 
-> **Status:** the standalone app (v3) is in development. The original
-> Notepad++ plugin (v2.6.0) still works and lives in
-> [`legacy/notepadpp-plugin`](legacy/notepadpp-plugin) with its own
-> installer and README.
+![Platform](https://img.shields.io/badge/platform-Windows-blue)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
+![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange)
 
-## Build a portable exe (Windows)
+## Download
 
-Needs Python 3.12+ from python.org. From the repo folder:
+Grab the latest from the **Releases** page:
+
+- **`LyricToolsPP-<version>-setup.exe`**: the installer. Per-user, no admin
+  rights needed. Adds a Start Menu shortcut and (optional) a right-click
+  **Open with LyricTools++** entry for `.txt` files.
+- **`LyricToolsPP-<version>-portable-win64.zip`**: unzip and run
+  `LyricToolsPP.exe`. Settings stay in that folder.
+
+The app isn't code-signed yet, so Windows SmartScreen may warn on first run:
+click **More info → Run anyway**.
+
+## What it does
+
+- **Syllable counts**: each line's count sits in the left gutter, color-coded
+  so lines that should scan the same visibly match. Knows rap spelling:
+  `droppin'`, `finna`, `y'all`, `bitch'll`, and more.
+- **Highlight-to-rhyme**: double-click a word for a dropdown of rhymes
+  (Perfect, Near, or Near + Perfect). ↑/↓ and Enter, or click, to swap the
+  word in. Esc or click away to close. Works offline.
+- **Synonyms & Deep Search** (F7 / F8): online lookups via the free
+  [Datamuse API](https://www.datamuse.com/api/) for when you want more options.
+- **Home page**: every lyric in your lyrics folder as a card (title,
+  sections, first lines, last edited), with search.
+- **Sections you can fold**: `[Verse 1]`, `[Chorus]`… get a fold arrow;
+  collapse what you're not working on.
+- **Formatting**: bold, italic, underline and headings, stored as plain-text
+  markers so your files still open anywhere:
+
+  | Looks like | Typed as | Shortcut |
+  |---|---|---|
+  | **bold** | `**bold**` | Ctrl+B |
+  | *italic* | `*italic*` | Ctrl+I |
+  | <u>underline</u> | `__underline__` | Ctrl+U |
+  | Song title | `# Song title` | Ctrl+Shift+H |
+  | Section | `[Chorus]` | Ctrl+Shift+N |
+
+## Shortcuts
+
+| | |
+|---|---|
+| Ctrl+N / Ctrl+O / Ctrl+S | New lyric / Open / Save |
+| Ctrl+1 / 2 / 3 | Perfect / Near / Near + Perfect rhymes |
+| F6 | Rhymes for the word at the cursor |
+| F7 / F8 | Synonyms / Deep Search (online) |
+| Ctrl+= / Ctrl+- / Ctrl+0 | Text size |
+
+## Building from source
+
+Needs [Rust](https://rustup.rs).
 
 ```
-build_portable.bat
+cargo run              # run it
+cargo test             # tests
+build_release.bat      # Windows: dist\ portable zip + installer (installer needs NSIS 3)
+./package_from_linux.sh  # same, cross-compiled from Linux
 ```
 
-Output: `dist\LyricToolsPP\LyricToolsPP.exe` (run it in place) and a zip
-of that folder to share. The portable copy keeps its settings in
-`settings.ini` next to the exe.
+## Releasing
 
-## Using it
-
-- Type lyrics; each line's syllable count shows in the left gutter.
-- Double-click (or drag-select) one word to get rhymes in a dropdown.
-  Enter/click replaces the word; Esc or clicking away closes it.
-- **Ctrl+1 / 2 / 3** — Perfect / Near / Report (both) rhyme mode.
-- **F7** Synonyms, **F8** Deep Search (online, one-shot).
-- **Ctrl+Space** — rhymes for the word at the caret.
-
-## Development
+Bump `version` in `Cargo.toml`, commit, then tag and push:
 
 ```
-pip install -e ".[dev]"
-python -m pytest -q
-python -m lyrictools
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
-## License
+GitHub Actions (`.github/workflows/release.yml`) builds the installer and the
+portable zip on Windows and attaches them to a new release.
 
-MIT — see [`LICENSE`](LICENSE). The bundled CMU Pronouncing Dictionary is
-separately licensed — see `src/lyrictools/data/CMUDICT_LICENSE.txt`.
+## License & credits
+
+MIT, see [`LICENSE`](LICENSE).
+Bundled: the [CMU Pronouncing Dictionary](data/CMUDICT_LICENSE.txt) and
+[JetBrains Mono](assets/fonts/FONT_LICENSE.txt). Built with
+[egui](https://github.com/emilk/egui). The original Notepad++ plugin
+lives in [`legacy/notepadpp-plugin`](legacy/notepadpp-plugin).

@@ -11,3 +11,5 @@
 # Binary files -- do not let git touch these at all.
 *.ico binary
 *.dict binary
+*.ttf binary
+*.png binary

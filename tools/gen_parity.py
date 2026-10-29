@@ -1,14 +1,14 @@
 """Dump the Python reference core's output as a fixture for tests/parity.rs.
 
 Dev-time only (the app itself is 100% Rust). Run from the repo root:
-    python rust/tools/gen_parity.py
+    python tools/gen_parity.py
 """
 import json
 import os
 import sys
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-sys.path.insert(0, os.path.join(ROOT, "src"))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(ROOT, "legacy", "python-prototype", "src"))
 from lyrictools import core  # noqa: E402
 
 FAKE = {
@@ -65,7 +65,7 @@ fixture = {
     "deep": {a: core.find_words_deep(a, 150) for a in ["yeezy", "bite", "night", "orange"]},
     "synonyms": {a: core.find_words(a, "synonym", 60) for a in ["night", "Night", "money"]},
 }
-out = os.path.join(ROOT, "rust", "tests", "fixtures", "parity.json")
+out = os.path.join(ROOT, "tests", "fixtures", "parity.json")
 with open(out, "w", encoding="utf-8") as fh:
     json.dump({"fake_datamuse": FAKE, **fixture}, fh, ensure_ascii=False, indent=0, sort_keys=True)
 print(out, sum(len(v) for v in fixture.values()), "cases")

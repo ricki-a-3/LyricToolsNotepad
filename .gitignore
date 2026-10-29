@@ -1,26 +1,23 @@
-# Python bytecode
+# Rust build output
+/target
+/dist
+
+# Python (legacy prototype)
 __pycache__/
 *.pyc
-*.pyo
+.pytest_cache/
+*.egg-info/
+build/
+.venv*/
 
-# OS cruft
+# Local
+deliverables/
+settings.json
+settings.ini
+
+# OS / editor cruft
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Editor/IDE
 .vscode/
 .idea/
-
-# Build output
-build/
-dist/
-*.spec.bak
-*.egg-info/
-.pytest_cache/
-
-# Build environment / generated
-.venv*/
-packaging/version_info.txt
-settings.ini
-deliverables/

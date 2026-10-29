@@ -28,7 +28,10 @@ impl std::fmt::Display for DatamuseError {
 /// Query params -> result rows. Swappable so tests never touch the network.
 pub type Fetch<'a> = &'a dyn Fn(&[(&str, String)]) -> Result<Vec<Value>, DatamuseError>;
 
-static CACHE: LazyLock<Mutex<HashMap<Vec<(String, String)>, Vec<Value>>>> = LazyLock::new(Default::default);
+/// Sorted query params -> rows.
+type Cache = HashMap<Vec<(String, String)>, Vec<Value>>;
+
+static CACHE: LazyLock<Mutex<Cache>> = LazyLock::new(Default::default);
 
 /// GET https://api.datamuse.com/words with the given params (cached).
 pub fn fetch(params: &[(&str, String)]) -> Result<Vec<Value>, DatamuseError> {

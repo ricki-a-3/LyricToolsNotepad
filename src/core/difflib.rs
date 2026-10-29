@@ -39,6 +39,8 @@ fn matching_count<T: Eq + std::hash::Hash + Copy>(a: &[T], b: &[T]) -> usize {
     total
 }
 
+// Index loops mirror Python's difflib line for line, which keeps the port auditable.
+#[allow(clippy::needless_range_loop)]
 fn find_longest_match<T: Eq + std::hash::Hash + Copy>(
     a: &[T],
     b: &[T],

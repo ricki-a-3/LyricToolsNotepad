@@ -12,6 +12,13 @@ use crate::lookup::Mode;
 
 pub const MAX_RECENT: usize = 10;
 
+/// What the app shows when it starts without a file to open.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum StartPage {
+    Home,
+    LastFile,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -22,6 +29,10 @@ pub struct Settings {
     pub recent: Vec<PathBuf>,
     pub last_dir: Option<PathBuf>,
     pub window_size: Option<[f32; 2]>,
+    /// Folder the Home dashboard lists and new lyrics are saved to.
+    pub lyrics_dir: Option<PathBuf>,
+    pub start_page: StartPage,
+    pub last_file: Option<PathBuf>,
 }
 
 impl Default for Settings {
@@ -34,6 +45,9 @@ impl Default for Settings {
             recent: Vec::new(),
             last_dir: None,
             window_size: None,
+            lyrics_dir: None,
+            start_page: StartPage::Home,
+            last_file: None,
         }
     }
 }
@@ -57,6 +71,11 @@ impl Settings {
         self.recent.insert(0, path.to_path_buf());
         self.recent.truncate(MAX_RECENT);
         self.last_dir = path.parent().map(Path::to_path_buf);
+        self.last_file = Some(path.to_path_buf());
+    }
+
+    pub fn lyrics_dir(&self) -> PathBuf {
+        self.lyrics_dir.clone().unwrap_or_else(crate::library::default_dir)
     }
 }
 

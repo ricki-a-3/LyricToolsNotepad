@@ -1,96 +1,51 @@
-# LyricTools++ — Standalone App
+# LyricTools++
 
-## Direction (Oct 2026)
-The user wants the app to be **100% Rust**. `rust/` is the Rust rewrite
-(egui/eframe + wgpu, single self-contained exe) and is now the main line of
-work; see `rust/README.md`. The Python/PySide6 app in `src/` is the
-reference implementation: `rust/tests/parity.rs` checks the Rust core
-against output generated from the Python core. Keep behaviors below
-identical across both until the Python app is retired.
+Free, open-source (MIT) Windows lyric notepad. **100% Rust** (egui/eframe +
+wgpu), single self-contained exe. Released as v1.0.0 (installer + portable
+zip). Successor to a Notepad++ PythonScript plugin (v2.6.0).
 
-- Rust tests: `cd rust && cargo test`
-- Windows portable zip: `rust\build_portable.bat` (on Windows) or
-  `rust/package_from_linux.sh` (cross-compile, x86_64-pc-windows-gnu)
-
-## Goal
-Turn LyricTools++ (a Notepad++ PythonScript plugin, last released as v2.6.0)
-into a standalone Windows `.exe` lyric-writing app. Free and open source (MIT),
-installable by non-technical users, no dependency on Notepad++ or PythonScript.
-
-## Repo layout
-- `src/lyrictools/core.py` — pure logic, no editor dependencies: syllable
-  counting, offline perfect/near rhymes (CMUdict), slang exceptions list,
-  g-dropping rule (`droppin'` -> `dropping`), spelling-suffix fallback,
-  Datamuse synonyms, `find_words_deep()` (tiered offline + Datamuse merge).
-  Ported from the plugin's `lyrictools_core.py`; still Python 2/3 compatible
-  but the app only needs to support Python 3.12+.
-- `src/lyrictools/data/` — `cmudict.dict` + its license. Bundle as-is.
-- `tests/` — pytest regression suite against `core`.
-- `legacy/notepadpp-plugin/` — the original plugin, untouched and still
-  installable via its own `Install_LyricToolsPP.bat`. Its
-  `lyrictools_plugin.py` is a **behavior reference only** — don't port it
-  line by line, it's Scintilla-specific glue. Its `lyrictools_core.py` is a
-  separate copy; fixes to `src/lyrictools/core.py` are not mirrored there.
-- `legacy/notepadpp-plugin/LyricTool/toolbar_icons/` — 256px icons, reuse
-  for the app toolbar.
-
-## Stack
-- **Python 3.12+ + PySide6** (LGPL). `QPlainTextEdit` with a custom gutter
-  widget for syllable counts; a popup list for the rhyme dropdown.
-- **Not** PyQt6/QScintilla — GPL, which conflicts with shipping an MIT exe.
-- Package with **PyInstaller** (`--onedir` first: faster startup, fewer AV
-  false positives), then **Inno Setup** for a real installer.
-
-## Behaviors to preserve (hard-won — don't regress these)
-1. **Syllable gutter**: per-line count, updates on every edit. Number is
-   colored from a **12-color golden-angle palette** (hue starts 0.02,
-   += 0.618 per step, S=0.85, V=0.95; count N uses index (N-1) % 12). Only
-   the number is colored — lyric text keeps its normal color.
-2. **Highlight-to-rhyme dropdown**: fully selecting exactly one whole word
-   opens a dropdown at that word; picking an entry replaces exactly that
-   word; Esc / click away / deselect closes it and leaves nothing behind.
-   No side panes, no second document.
-3. **Modes**: Perfect / Near / Near + Perfect (internally "report"; the default) are
-   armed and stay armed. Synonyms and Deep Search are one-shot commands.
-4. **Never block the UI thread on the network.** In the plugin, a network
-   call on passive highlight froze the editor. Run all Datamuse calls on a
-   worker thread; passive highlighting stays offline-only.
-5. **Deep Search ranking is tiered, not score-blended**: offline perfect ->
-   offline near -> Datamuse perfect -> Datamuse near. Raw scores across
-   sources aren't comparable (near-rhyme scores can exceed 1000).
-6. Section headers (`[Verse]`, `Chorus:`) get no syllable count — see
-   `is_section_header()`.
-
-## New app features needed
-- Open / save / save-as `.txt`, recent files, unsaved-changes prompt
-- Dark theme by default
-- Toolbar + keyboard shortcuts for each mode, Synonyms, Deep Search
-
-## App layout
-- `app.py` entry + settings location (portable if `portable.txt` sits next
-  to the exe -> `settings.ini` beside it; else per-user INI).
-- `mainwindow.py` menus/toolbar/files/modes; `editor.py` QPlainTextEdit +
-  gutter + whole-word selection detection (debounced 180ms, waits for mouse
-  release); `popup.py` dropdown; `lookup.py` worker threads (offline and
-  network executors kept separate); `textutil.py` pure helpers; `theme.py`.
-- Shortcuts: Ctrl+1/2/3 modes, F7 Synonyms, F8 Deep Search, Ctrl+Space
-  rhymes at caret.
+## Layout
+- `src/core/` — lyric logic: `mod.rs` syllables/headers/tokens, `dict.rs`
+  embedded CMUdict + indexes, `rhymes.rs` offline perfect/near + spelling
+  fallback, `difflib.rs` exact port of Python `SequenceMatcher.ratio`,
+  `datamuse.rs` Synonyms/Deep Search.
+- `src/app.rs` shell: views (Home/Editor/Settings), menus, files, prompts,
+  fonts, `shortcut()` (exact-modifier key matching — egui's `consume_key`
+  ignores extra Shift, so Ctrl+Shift+N would also fire Ctrl+N).
+- `src/editor.rs` editor view: styled layout, gutter + fold arrows, rhyme
+  dropdown, formatting commands. `src/home.rs` dashboard. `src/settings_view.rs`.
+- `src/markup.rs` pure markup logic (inline styles, headings, sections/folds,
+  edit commands). `src/library.rs` lyrics-folder scan. `src/lookup.rs`
+  background lookups. `src/settings.rs`, `src/textutil.rs`, `src/winshell.rs`
+  (HKCU right-click entry; same key as the installer).
+- `installer/LyricToolsPP.nsi` — NSIS, per-user, no admin.
+- `tests/parity.rs` + `tests/fixtures/parity.json` — Rust core must match the
+  Python reference exactly. `tools/gen_parity.py` regenerates the fixture from
+  `legacy/python-prototype/` (only if core behavior changes on purpose).
+- `legacy/` — the Notepad++ plugin and the PySide6 prototype. Reference only.
 
 ## Commands
-- Tests: `python -m pytest -q` (from repo root; GUI tests use pytest-qt,
-  set `QT_QPA_PLATFORM=offscreen` when headless)
-- Portable build (Windows): `build_portable.bat` -> `dist\LyricToolsPP\`
-  + `dist\LyricToolsPP-<ver>-portable-win64.zip`
-- Run from source: `run_dev.bat` or `python -m lyrictools`
+- `cargo test` · `cargo clippy --release -- -D warnings` · `cargo fmt --check` (CI runs all three)
+- `build_release.bat` (Windows) / `./package_from_linux.sh` → `dist/`
+- Release: bump `Cargo.toml` version, tag `vX.Y.Z`, push tag → GitHub Actions.
 
-## Milestones
-1. ~~Scaffold, move core into a package, pytest suite passing~~
-2. ~~Editor window, open/save, syllable gutter with colors~~
-3. ~~Highlight-to-rhyme dropdown + mode switching~~
-4. ~~Async Synonyms + Deep Search~~
-5. PyInstaller portable build (`build_portable.bat`) done; Inno Setup installer next
-6. README.md + GitHub release workflow
+## Behaviors to preserve (hard-won — don't regress)
+1. **Syllable gutter**: per-line count, 12-color golden-angle palette (hue
+   starts 0.02, += 0.618, S=0.85, V=0.95; count N → index (N-1) % 12). Only
+   the number is colored. Headers (`[Verse]`, `Chorus:`, `# Title`) get none.
+2. **Highlight-to-rhyme dropdown**: selecting exactly one whole word opens it
+   at the word; pick replaces exactly that word (case carried over); Esc /
+   click away / deselect closes it, nothing left behind.
+3. **Modes**: Perfect / Near / Near + Perfect (internally `Report`, default)
+   stay armed. Synonyms and Deep Search are one-shot.
+4. **Never block the UI thread** — all lookups run on worker threads.
+5. **Deep Search ranking is tiered**, not score-blended: offline perfect →
+   offline near → Datamuse perfect → Datamuse near.
+6. egui only reports the TextEdit selection while it has focus. Keep the last
+   known selection when focus moves to a toolbar button (otherwise one-shot
+   lookups cancel themselves).
+7. Files are plain text; formatting is markers (`**b**`, `*i*`, `__u__`, `#`).
 
 ## User preferences
-Concise, direct. Iterative and test-driven. Push back when an approach
-seems off.
+Concise, direct. Iterative and test-driven. Push back when an approach seems off.
+Wants the app 100% Rust.
