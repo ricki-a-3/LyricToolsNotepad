@@ -9,14 +9,30 @@ jobs:
   test:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@1.97.0
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: Format
         run: cargo fmt --check
+      # Errors are re-emitted as GitHub annotations so they show up on the
+      # run summary (and through the API) without downloading the log.
       - name: Clippy
-        run: cargo clippy --release -- -D warnings
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo clippy --release --message-format=short -- -D warnings 2>&1 | tee clippy.txt || {
+            grep -E '^[^ ]+:[0-9]+:[0-9]+: (error|warning)' clippy.txt | head -20 | while IFS= read -r line; do
+              echo "::error file=${line%%:*}::${line}"
+            done
+            exit 1
+          }
       - name: Tests
-        run: cargo test --release
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo test --release 2>&1 | tee test.txt || {
+            grep -E 'panicked at|FAILED|error(\[|:)' test.txt | head -20 | while IFS= read -r line; do echo "::error::${line}"; done
+            exit 1
+          }

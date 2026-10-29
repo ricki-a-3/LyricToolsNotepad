@@ -1,4 +1,4 @@
-// Embed the app icon + version info into LyricToolsPP.exe on Windows builds.
+// Embed the app icon + version info into LyricToolsNotepad.exe on Windows builds.
 fn main() {
     println!("cargo:rerun-if-changed=assets/start.ico");
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
@@ -6,10 +6,10 @@ fn main() {
     }
     let mut res = winresource::WindowsResource::new();
     res.set_icon("assets/start.ico")
-        .set("ProductName", "LyricTools++")
-        .set("FileDescription", "LyricTools++ lyric notepad")
+        .set("ProductName", "LyricToolsNotepad")
+        .set("FileDescription", "LyricToolsNotepad lyric notepad")
         .set("LegalCopyright", "MIT License")
-        .set("OriginalFilename", "LyricToolsPP.exe");
+        .set("OriginalFilename", "LyricToolsNotepad.exe");
     if let Err(err) = res.compile() {
         // A missing resource compiler shouldn't block a dev build; the exe
         // just won't have an icon.

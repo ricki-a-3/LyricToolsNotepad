@@ -2,8 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;
-use lyrictools::app::{APP_NAME, LyricApp, app_icon};
-use lyrictools::settings::{Settings, settings_path};
+use lyrictoolsnotepad::app::{APP_NAME, LyricApp, app_icon};
+use lyrictoolsnotepad::settings::{Settings, settings_path};
 
 fn main() -> eframe::Result {
     let open = std::env::args_os().skip(1).find(|a| !a.to_string_lossy().starts_with('-')).map(Into::into);

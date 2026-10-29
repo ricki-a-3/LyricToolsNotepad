@@ -1,11 +1,11 @@
-//! "Open with LyricTools++" on the right-click menu of .txt files.
+//! "Open with LyricToolsNotepad" on the right-click menu of .txt files.
 //!
 //! Per-user (HKCU), so no admin rights are needed. The installer writes the
 //! same key, so the Settings toggle and the installer agree with each other.
 
-pub const MENU_TEXT: &str = "Open with LyricTools++";
+pub const MENU_TEXT: &str = "Open with LyricToolsNotepad";
 #[cfg(windows)]
-const KEY: &str = r"Software\Classes\SystemFileAssociations\.txt\shell\LyricToolsPP";
+const KEY: &str = r"Software\Classes\SystemFileAssociations\.txt\shell\LyricToolsNotepad";
 
 #[cfg(windows)]
 pub fn is_registered() -> bool {

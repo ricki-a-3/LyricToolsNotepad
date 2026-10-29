@@ -1,4 +1,4 @@
-//! LyricTools++ -- lyric notepad with live syllable counts and rhymes.
+//! LyricToolsNotepad -- lyric notepad with live syllable counts and rhymes.
 
 pub mod app;
 pub mod core;

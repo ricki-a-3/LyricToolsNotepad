@@ -53,7 +53,7 @@ impl LyricApp {
                 ui.label(RichText::new(format!("Default: {}", library::default_dir().display())).small().weak());
             }
 
-            section(ui, "When LyricTools++ starts");
+            section(ui, "When LyricToolsNotepad starts");
             changed |= ui.radio_value(&mut self.settings.start_page, StartPage::Home, "Show the Home page").changed();
             changed |= ui
                 .radio_value(&mut self.settings.start_page, StartPage::LastFile, "Reopen the last lyric I worked on")
@@ -104,7 +104,7 @@ impl LyricApp {
             }
 
             section(ui, "About");
-            ui.label(format!("LyricTools++ {}", env!("CARGO_PKG_VERSION")));
+            ui.label(format!("LyricToolsNotepad {}", env!("CARGO_PKG_VERSION")));
             ui.label(RichText::new(format!("Settings file: {}", self.settings_file().display())).small().weak());
         });
         if changed {

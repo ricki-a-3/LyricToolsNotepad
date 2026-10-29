@@ -1,4 +1,4 @@
-# LyricTools++
+# LyricToolsNotepad
 
 A free, open-source lyric notepad for Windows, built for rap and songwriting:
 live syllable counts on every line, rhymes for any word you highlight, and
@@ -12,11 +12,11 @@ titled sections you can fold away while you work on the next verse.
 
 Grab the latest from the **Releases** page:
 
-- **`LyricToolsPP-<version>-setup.exe`**: the installer. Per-user, no admin
+- **`LyricToolsNotepad-<version>-setup.exe`**: the installer. Per-user, no admin
   rights needed. Adds a Start Menu shortcut and (optional) a right-click
-  **Open with LyricTools++** entry for `.txt` files.
-- **`LyricToolsPP-<version>-portable-win64.zip`**: unzip and run
-  `LyricToolsPP.exe`. Settings stay in that folder.
+  **Open with LyricToolsNotepad** entry for `.txt` files.
+- **`LyricToolsNotepad-<version>-portable-win64.zip`**: unzip and run
+  `LyricToolsNotepad.exe`. Settings stay in that folder.
 
 The app isn't code-signed yet, so Windows SmartScreen may warn on first run:
 click **More info → Run anyway**.
@@ -69,20 +69,17 @@ build_release.bat      # Windows: dist\ portable zip + installer (installer need
 
 ## Releasing
 
-Bump `version` in `Cargo.toml`, commit, then tag and push:
+1. Bump `version` in `Cargo.toml` (and add a `CHANGELOG.md` entry), commit, push.
+2. On GitHub: **Releases → Draft a new release**, type the tag `v<version>`
+   (e.g. `v1.0.1`, "create new tag on publish"), add notes, **Publish**.
 
-```
-git tag v1.0.1
-git push origin v1.0.1
-```
-
-GitHub Actions (`.github/workflows/release.yml`) builds the installer and the
-portable zip on Windows and attaches them to a new release.
+GitHub Actions (`.github/workflows/release.yml`) then builds the installer and
+the portable zip on Windows and attaches them to that release (~10 min).
 
 ## License & credits
 
 MIT, see [`LICENSE`](LICENSE).
 Bundled: the [CMU Pronouncing Dictionary](data/CMUDICT_LICENSE.txt) and
 [JetBrains Mono](assets/fonts/FONT_LICENSE.txt). Built with
-[egui](https://github.com/emilk/egui). The original Notepad++ plugin
+[egui](https://github.com/emilk/egui). The original Notepad++ plugin (LyricTools++)
 lives in [`legacy/notepadpp-plugin`](legacy/notepadpp-plugin).

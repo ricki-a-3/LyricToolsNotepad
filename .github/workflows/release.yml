@@ -1,10 +1,11 @@
 name: Release
 
-# Push a tag like v1.0.0 to build the Windows installer + portable zip and
-# publish them as a GitHub release.
+# Publish a release on GitHub (Releases -> Draft a new release, tag e.g.
+# v1.0.1) and this builds the Windows installer + portable zip on Windows and
+# attaches them to it.
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
 
 permissions:
   contents: write
@@ -13,16 +14,17 @@ jobs:
   release:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@1.97.0
       - uses: Swatinem/rust-cache@v2
 
       - name: Check tag matches Cargo.toml version
         shell: bash
         run: |
           version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match Cargo.toml version $version"; exit 1
+          tag="${{ github.event.release.tag_name }}"
+          if [ "v$version" != "$tag" ]; then
+            echo "Release tag $tag does not match Cargo.toml version $version"; exit 1
           fi
 
       - name: Install NSIS
@@ -40,4 +42,4 @@ jobs:
           files: |
             dist/*-setup.exe
             dist/*-portable-win64.zip
-          generate_release_notes: true
+          tag_name: ${{ github.event.release.tag_name }}

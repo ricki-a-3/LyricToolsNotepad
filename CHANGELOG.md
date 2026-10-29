@@ -2,7 +2,7 @@
 
 ## 1.0.0
 
-First release of LyricTools++ as its own Windows app (previously a
+First release of LyricToolsNotepad as its own Windows app (formerly LyricTools++, a
 Notepad++ plugin, v2.6.0).
 
 - Lyric editor with per-line syllable counts in a color-coded gutter
@@ -13,5 +13,5 @@ Notepad++ plugin, v2.6.0).
   Windows right-click menu toggle
 - Titled, foldable sections (`[Verse 1]`, `[Chorus]`…)
 - Bold, italic, underline and headings, saved as plain-text markers
-- Installer (per-user) with "Open with LyricTools++" on `.txt` files, plus a
+- Installer (per-user) with "Open with LyricToolsNotepad" on `.txt` files, plus a
   portable zip

@@ -1,8 +1,8 @@
-; LyricTools++ installer (NSIS 3). Per-user install: no admin prompt.
+; LyricToolsNotepad installer (NSIS 3). Per-user install: no admin prompt.
 ;
 ; Build (from the rust/ folder, after the release exe is staged):
-;   makensis -DVERSION=1.0.0 -DSTAGE=dist\stage -DOUTFILE=dist\LyricToolsPP-1.0.0-setup.exe installer\LyricToolsPP.nsi
-; STAGE must contain LyricToolsPP.exe and the license .txt files.
+;   makensis -DVERSION=1.0.0 -DSTAGE=dist\stage -DOUTFILE=dist\LyricToolsNotepad-1.0.0-setup.exe installer\LyricToolsNotepad.nsi
+; STAGE must contain LyricToolsNotepad.exe and the license .txt files.
 
 Unicode true
 !include "MUI2.nsh"
@@ -11,24 +11,24 @@ Unicode true
   !error "Pass -DVERSION=x.y.z"
 !endif
 !ifndef STAGE
-  !error "Pass -DSTAGE=<folder with LyricToolsPP.exe>"
+  !error "Pass -DSTAGE=<folder with LyricToolsNotepad.exe>"
 !endif
 !ifndef OUTFILE
-  !define OUTFILE "LyricToolsPP-${VERSION}-setup.exe"
+  !define OUTFILE "LyricToolsNotepad-${VERSION}-setup.exe"
 !endif
 
-!define APPNAME "LyricTools++"
-!define EXE "LyricToolsPP.exe"
-!define REGKEY "Software\LyricToolsPP"
-!define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\LyricToolsPP"
+!define APPNAME "LyricToolsNotepad"
+!define EXE "LyricToolsNotepad.exe"
+!define REGKEY "Software\LyricToolsNotepad"
+!define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\LyricToolsNotepad"
 ; Same key the app's Settings page toggles (src/winshell.rs).
-!define SHELLKEY "Software\Classes\SystemFileAssociations\.txt\shell\LyricToolsPP"
+!define SHELLKEY "Software\Classes\SystemFileAssociations\.txt\shell\LyricToolsNotepad"
 
 Name "${APPNAME}"
 Caption "${APPNAME} ${VERSION} Setup"
 OutFile "${OUTFILE}"
 RequestExecutionLevel user
-InstallDir "$LOCALAPPDATA\Programs\LyricTools++"
+InstallDir "$LOCALAPPDATA\Programs\LyricToolsNotepad"
 InstallDirRegKey HKCU "${REGKEY}" "InstallDir"
 SetCompressor /SOLID lzma
 BrandingText "${APPNAME} ${VERSION}"

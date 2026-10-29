@@ -15,7 +15,7 @@ use crate::lookup::{LookupService, Mode};
 use crate::settings::{Settings, StartPage, settings_path};
 use crate::textutil::{FileFormat, decode_text, encode_text};
 
-pub const APP_NAME: &str = "LyricTools++";
+pub const APP_NAME: &str = "LyricToolsNotepad";
 const STATUS_MESSAGE_SECS: f64 = 5.0;
 const APP_ICON: &[u8] = include_bytes!("../assets/start.ico");
 
@@ -358,7 +358,7 @@ impl LyricApp {
     fn write(&mut self, ctx: &egui::Context, path: &Path) -> bool {
         let data = encode_text(&self.text, self.format);
         // Write-then-rename so a crash mid-save can't truncate the lyrics.
-        let tmp = path.with_extension("lyrictools-tmp");
+        let tmp = path.with_extension("lyrictoolsnotepad-tmp");
         let result = std::fs::write(&tmp, &data).and_then(|_| std::fs::rename(&tmp, path));
         if let Err(err) = result {
             let _ = std::fs::remove_file(&tmp);

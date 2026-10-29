@@ -1,0 +1,6 @@
+# Same Rust everywhere (local builds and CI), so new lints in a newer
+# toolchain can't break CI unexpectedly. Bump deliberately.
+[toolchain]
+channel = "1.97.0"
+components = ["clippy", "rustfmt"]
+targets = ["x86_64-pc-windows-gnu"]

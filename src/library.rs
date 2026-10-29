@@ -23,9 +23,9 @@ pub struct LyricFile {
     pub modified: Option<SystemTime>,
 }
 
-/// Default lyrics folder: Documents\LyricTools++.
+/// Default lyrics folder: Documents\LyricToolsNotepad.
 pub fn default_dir() -> PathBuf {
-    dirs::document_dir().or_else(dirs::home_dir).unwrap_or_else(|| PathBuf::from(".")).join("LyricTools++")
+    dirs::document_dir().or_else(dirs::home_dir).unwrap_or_else(|| PathBuf::from(".")).join("LyricToolsNotepad")
 }
 
 pub fn is_lyric_file(path: &Path) -> bool {

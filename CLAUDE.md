@@ -1,8 +1,9 @@
-# LyricTools++
+# LyricToolsNotepad
 
 Free, open-source (MIT) Windows lyric notepad. **100% Rust** (egui/eframe +
 wgpu), single self-contained exe. Released as v1.0.0 (installer + portable
-zip). Successor to a Notepad++ PythonScript plugin (v2.6.0).
+zip). Successor to LyricTools++, a Notepad++ PythonScript plugin (v2.6.0).
+Official name everywhere (code, exe, installer, GitHub): **LyricToolsNotepad**.
 
 ## Layout
 - `src/core/` — lyric logic: `mod.rs` syllables/headers/tokens, `dict.rs`
@@ -18,7 +19,7 @@ zip). Successor to a Notepad++ PythonScript plugin (v2.6.0).
   edit commands). `src/library.rs` lyrics-folder scan. `src/lookup.rs`
   background lookups. `src/settings.rs`, `src/textutil.rs`, `src/winshell.rs`
   (HKCU right-click entry; same key as the installer).
-- `installer/LyricToolsPP.nsi` — NSIS, per-user, no admin.
+- `installer/LyricToolsNotepad.nsi` — NSIS, per-user, no admin.
 - `tests/parity.rs` + `tests/fixtures/parity.json` — Rust core must match the
   Python reference exactly. `tools/gen_parity.py` regenerates the fixture from
   `legacy/python-prototype/` (only if core behavior changes on purpose).
@@ -27,7 +28,10 @@ zip). Successor to a Notepad++ PythonScript plugin (v2.6.0).
 ## Commands
 - `cargo test` · `cargo clippy --release -- -D warnings` · `cargo fmt --check` (CI runs all three)
 - `build_release.bat` (Windows) / `./package_from_linux.sh` → `dist/`
-- Release: bump `Cargo.toml` version, tag `vX.Y.Z`, push tag → GitHub Actions.
+- Release: bump `Cargo.toml` version, push; then publish a GitHub release tagged
+  `vX.Y.Z` (web UI) → `release.yml` builds and attaches the installer + zip.
+  (Cloud sessions can't push tags or create releases; the user publishes.)
+- Repo: https://github.com/ricki-a-3/LyricToolsNotepad
 
 ## Behaviors to preserve (hard-won — don't regress)
 1. **Syllable gutter**: per-line count, 12-color golden-angle palette (hue

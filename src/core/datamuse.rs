@@ -42,7 +42,7 @@ pub fn fetch(params: &[(&str, String)]) -> Result<Vec<Value>, DatamuseError> {
     }
     let agent: ureq::Agent = ureq::Agent::config_builder()
         .timeout_global(Some(TIMEOUT))
-        .user_agent(concat!("LyricToolsPP/", env!("CARGO_PKG_VERSION"), " (+https://www.datamuse.com/api/)"))
+        .user_agent(concat!("LyricToolsNotepad/", env!("CARGO_PKG_VERSION"), " (+https://www.datamuse.com/api/)"))
         .build()
         .into();
     let mut request = agent.get("https://api.datamuse.com/words");

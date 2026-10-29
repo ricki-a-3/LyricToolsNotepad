@@ -1,13 +1,13 @@
 [package]
-name = "lyrictools"
+name = "lyrictoolsnotepad"
 version = "1.0.0"
 edition = "2024"
-description = "LyricTools++: a lyric notepad with live syllable counts and rhyme suggestions"
+description = "LyricToolsNotepad: a lyric notepad with live syllable counts and rhyme suggestions"
 license = "MIT"
 rust-version = "1.88"
 
 [[bin]]
-name = "LyricToolsPP"
+name = "LyricToolsNotepad"
 path = "src/main.rs"
 
 [dependencies]
