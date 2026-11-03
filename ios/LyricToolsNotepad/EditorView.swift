@@ -266,7 +266,7 @@ struct LyricEditor: UIViewRepresentable {
 
         func refreshSuggestions() {
             guard let picked = selectedWord() else { return }
-            lookup(word: word, range: range, kind: .rhymes(parent.rhymeMode))
+            lookup(word: picked.0, range: picked.1, kind: .rhymes(parent.rhymeMode))
         }
 
         private func lookup(word: String, range: NSRange, kind: LookupKind) {
