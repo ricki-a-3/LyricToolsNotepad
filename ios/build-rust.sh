@@ -9,23 +9,23 @@ cd "$(dirname "$0")/.."
 export IPHONEOS_DEPLOYMENT_TARGET=17.0
 rustup target add aarch64-apple-ios aarch64-apple-ios-sim
 
-cargo build -p lyrics-ffi --release --target aarch64-apple-ios
-cargo build -p lyrics-ffi --release --target aarch64-apple-ios-sim
-# A host build, just so uniffi-bindgen can read the API metadata.
-cargo build -p lyrics-ffi --release
+cargo build -p lyrics-ffi --profile mobile --target aarch64-apple-ios
+cargo build -p lyrics-ffi --profile mobile --target aarch64-apple-ios-sim
+# A quick host build, just so uniffi-bindgen can read the API metadata.
+cargo build -p lyrics-ffi
 
 OUT=ios/Generated
 rm -rf "$OUT"
 mkdir -p "$OUT/bindings" "$OUT/headers"
-cargo run -q -p lyrics-ffi --release --bin uniffi-bindgen -- generate \
-  --library target/release/liblyrics_ffi.dylib --language swift --out-dir "$OUT/bindings"
+cargo run -q -p lyrics-ffi --bin uniffi-bindgen -- generate \
+  --library target/debug/liblyrics_ffi.dylib --language swift --out-dir "$OUT/bindings"
 
 cp "$OUT/bindings/lyrics_ffiFFI.h" "$OUT/headers/"
 cp "$OUT/bindings/lyrics_ffiFFI.modulemap" "$OUT/headers/module.modulemap"
 
 xcodebuild -create-xcframework \
-  -library target/aarch64-apple-ios/release/liblyrics_ffi.a -headers "$OUT/headers" \
-  -library target/aarch64-apple-ios-sim/release/liblyrics_ffi.a -headers "$OUT/headers" \
+  -library target/aarch64-apple-ios/mobile/liblyrics_ffi.a -headers "$OUT/headers" \
+  -library target/aarch64-apple-ios-sim/mobile/liblyrics_ffi.a -headers "$OUT/headers" \
   -output "$OUT/LyricsFFI.xcframework"
 
 echo "Built $OUT/LyricsFFI.xcframework"

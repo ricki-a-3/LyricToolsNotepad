@@ -37,3 +37,10 @@ winreg = "0.56.0"
 
 [dev-dependencies]
 tempfile = "3.27.0"
+
+# iOS static libraries: still optimized, but much faster to build in CI than
+# the Windows release profile (full LTO, one codegen unit).
+[profile.mobile]
+inherits = "release"
+lto = "thin"
+codegen-units = 8
