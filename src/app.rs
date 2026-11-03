@@ -5,6 +5,7 @@
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::{Duration, SystemTime};
 
 use eframe::egui::{self, Color32, FontData, FontDefinitions, FontFamily, Key, Modifiers};
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
@@ -17,6 +18,39 @@ use crate::textutil::{FileFormat, decode_text, encode_text};
 
 pub const APP_NAME: &str = "LyricToolsNotepad";
 const STATUS_MESSAGE_SECS: f64 = 5.0;
+/// How often to look for edits made on another device (synced folders).
+const DISK_CHECK_SECS: f64 = 2.0;
+/// Synced folders can nudge modification times slightly.
+const MTIME_SLACK: Duration = Duration::from_millis(500);
+
+fn mtime(path: &Path) -> Option<SystemTime> {
+    std::fs::metadata(path).and_then(|m| m.modified()).ok()
+}
+
+/// Is the file on disk newer than the version we have?
+fn newer_on_disk(disk: Option<SystemTime>, known: Option<SystemTime>) -> bool {
+    match (disk, known) {
+        (Some(disk), Some(known)) => disk.duration_since(known).is_ok_and(|d| d > MTIME_SLACK),
+        _ => false,
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum DiskAction {
+    Nothing,
+    /// No local edits: just load the other device's version.
+    Reload,
+    /// Local edits too: ask which version wins.
+    Ask,
+}
+
+fn disk_action(changed_on_disk: bool, dirty: bool) -> DiskAction {
+    match (changed_on_disk, dirty) {
+        (false, _) => DiskAction::Nothing,
+        (true, false) => DiskAction::Reload,
+        (true, true) => DiskAction::Ask,
+    }
+}
 const APP_ICON: &[u8] = include_bytes!("../assets/start.ico");
 
 pub fn app_icon() -> Option<egui::IconData> {
@@ -99,6 +133,11 @@ pub struct LyricApp {
     pub(crate) path: Option<PathBuf>,
     pub(crate) format: FileFormat,
     pub(crate) dirty: bool,
+    /// Modification time of the file as we last loaded/saved it.
+    disk_mtime: Option<SystemTime>,
+    /// The file changed on another device while we had unsaved edits.
+    pub(crate) changed_elsewhere: bool,
+    disk_checked_at: f64,
 
     pub(crate) settings: Settings,
     settings_path: PathBuf,
@@ -148,6 +187,9 @@ impl LyricApp {
             path: None,
             format: FileFormat::default(),
             dirty: false,
+            disk_mtime: None,
+            changed_elsewhere: false,
+            disk_checked_at: 0.0,
             settings,
             settings_path,
             view: View::Home,
@@ -293,6 +335,8 @@ impl LyricApp {
 
     pub(crate) fn replace_document(&mut self, text: String, path: Option<PathBuf>, format: FileFormat) {
         self.text = text;
+        self.disk_mtime = path.as_deref().and_then(mtime);
+        self.changed_elsewhere = false;
         self.path = path;
         self.format = format;
         self.dirty = false;
@@ -338,8 +382,72 @@ impl LyricApp {
 
     pub(crate) fn save(&mut self, ctx: &egui::Context) -> bool {
         match self.path.clone() {
-            Some(path) => self.write(ctx, &path),
+            Some(path) => {
+                // Don't silently overwrite edits made on another device.
+                if self.changed_on_disk() {
+                    self.changed_elsewhere = true;
+                    self.flash(ctx, "This lyric changed on another device \u{2014} choose which version to keep.");
+                    return false;
+                }
+                self.write(ctx, &path)
+            }
             None => self.save_as(ctx),
+        }
+    }
+
+    fn changed_on_disk(&self) -> bool {
+        newer_on_disk(self.path.as_deref().and_then(mtime), self.disk_mtime)
+    }
+
+    /// Every couple of seconds: has the open file been changed elsewhere
+    /// (e.g. on the iPhone, through iCloud Drive)? Reload it if we have no
+    /// unsaved edits; otherwise ask which version to keep.
+    fn check_disk(&mut self, ctx: &egui::Context) {
+        let now = ctx.input(|i| i.time);
+        ctx.request_repaint_after(Duration::from_secs_f64(DISK_CHECK_SECS));
+        if now - self.disk_checked_at < DISK_CHECK_SECS || self.changed_elsewhere {
+            return;
+        }
+        self.disk_checked_at = now;
+        match disk_action(self.changed_on_disk(), self.dirty) {
+            DiskAction::Nothing => {}
+            DiskAction::Ask => self.changed_elsewhere = true,
+            DiskAction::Reload => {
+                if self.reload_from_disk() {
+                    self.flash(ctx, "Updated with changes from another device.");
+                }
+            }
+        }
+    }
+
+    fn reload_from_disk(&mut self) -> bool {
+        let Some(path) = self.path.clone() else { return false };
+        let Ok(bytes) = std::fs::read(&path) else { return false };
+        let (text, format) = decode_text(&bytes);
+        self.text = text;
+        self.format = format;
+        self.disk_mtime = mtime(&path);
+        self.dirty = false;
+        self.changed_elsewhere = false;
+        self.popup = None;
+        let end = self.text.chars().count();
+        let caret = self.caret.min(end);
+        self.set_cursor = Some((caret, caret));
+        true
+    }
+
+    /// The other device's version wins.
+    pub(crate) fn use_other_version(&mut self, ctx: &egui::Context) {
+        if self.reload_from_disk() {
+            self.flash(ctx, "Loaded the version from your other device.");
+        }
+    }
+
+    /// This device's version wins.
+    pub(crate) fn keep_mine(&mut self, ctx: &egui::Context) {
+        self.changed_elsewhere = false;
+        if let Some(path) = self.path.clone() {
+            self.write(ctx, &path);
         }
     }
 
@@ -373,6 +481,7 @@ impl LyricApp {
         self.settings.remember(&path);
         self.save_settings();
         self.flash(ctx, format!("Saved {}", path.display()));
+        self.disk_mtime = mtime(&path);
         self.path = Some(path);
         self.dirty = false;
         self.library_stale = true;
@@ -476,6 +585,27 @@ impl LyricApp {
                 }
             });
         });
+    }
+
+    fn changed_elsewhere_banner(&mut self, ui: &mut egui::Ui) {
+        let ctx = ui.ctx().clone();
+        egui::Frame::NONE
+            .fill(ui.visuals().warn_fg_color.gamma_multiply(0.18))
+            .inner_margin(egui::Margin::symmetric(10, 6))
+            .corner_radius(6)
+            .show(ui, |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.label(egui::RichText::new("This lyric changed on another device.").strong());
+                    ui.label("You have unsaved edits here. Which version should win?");
+                    if ui.button("Use the other version").clicked() {
+                        self.use_other_version(&ctx);
+                    }
+                    if ui.button("Keep mine").clicked() {
+                        self.keep_mine(&ctx);
+                    }
+                });
+            });
+        ui.add_space(4.0);
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui) {
@@ -587,6 +717,7 @@ impl eframe::App for LyricApp {
         }
 
         self.poll_lookups(&ctx);
+        self.check_disk(&ctx);
         if self.prompt.is_none() {
             self.handle_global_shortcuts(&ctx);
             if self.view == View::Editor {
@@ -600,6 +731,9 @@ impl eframe::App for LyricApp {
                 ui.add_space(2.0);
                 self.editor_toolbar(ui);
                 ui.add_space(2.0);
+                if self.changed_elsewhere {
+                    self.changed_elsewhere_banner(ui);
+                }
             }
         });
         egui::Panel::bottom("status").show(ui, |ui| self.status_bar(ui));
@@ -619,5 +753,24 @@ impl eframe::App for LyricApp {
         self.prompts(&ctx);
         self.update_title(&ctx);
         self.handle_close(&ctx);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn edits_from_other_devices() {
+        let t = SystemTime::UNIX_EPOCH + Duration::from_secs(1_000_000);
+        assert!(!newer_on_disk(Some(t), Some(t)));
+        assert!(!newer_on_disk(Some(t + Duration::from_millis(200)), Some(t))); // within slack
+        assert!(newer_on_disk(Some(t + Duration::from_secs(2)), Some(t)));
+        assert!(!newer_on_disk(Some(t), Some(t + Duration::from_secs(2)))); // ours is newer
+        assert!(!newer_on_disk(None, Some(t)));
+
+        assert_eq!(disk_action(false, true), DiskAction::Nothing);
+        assert_eq!(disk_action(true, false), DiskAction::Reload);
+        assert_eq!(disk_action(true, true), DiskAction::Ask);
     }
 }

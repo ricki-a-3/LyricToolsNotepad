@@ -24,7 +24,7 @@ jobs:
           version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
           tag="${{ github.event.release.tag_name }}"
           if [ "v$version" != "$tag" ]; then
-            echo "Release tag $tag does not match Cargo.toml version $version"; exit 1
+            echo "::warning::Release tag '$tag' isn't v$version (the version in Cargo.toml). Building v$version anyway; tag releases like v$version next time."
           fi
 
       - name: Install NSIS

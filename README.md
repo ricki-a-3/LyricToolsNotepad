@@ -1,10 +1,10 @@
 # LyricToolsNotepad
 
-A free, open-source lyric notepad for Windows, built for rap and songwriting:
+A free, open-source lyric notepad for Windows and iPhone, built for rap and songwriting:
 live syllable counts on every line, rhymes for any word you highlight, and
 titled sections you can fold away while you work on the next verse.
 
-![Platform](https://img.shields.io/badge/platform-Windows-blue)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20iOS-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange)
 
@@ -20,6 +20,9 @@ Grab the latest from the **Releases** page:
 
 The app isn't code-signed yet, so Windows SmartScreen may warn on first run:
 click **More info → Run anyway**.
+
+**iPhone:** see [docs/IOS.md](docs/IOS.md) — install from a Windows PC with
+Sideloadly (free Apple ID), and sync lyrics with your PC through iCloud Drive.
 
 ## What it does
 
