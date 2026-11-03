@@ -245,7 +245,7 @@ struct LyricEditor: UIViewRepresentable {
                 skipNextLookup = false
                 return
             }
-            guard let (word, range) = selectedWord() else {
+            guard let picked = selectedWord() else {
                 // Not on a whole word: go back to the formatting buttons. Keep
                 // online results (Synonyms / Deep Search) for the word at the
                 // cursor until you move away from it.
@@ -258,13 +258,14 @@ struct LyricEditor: UIViewRepresentable {
                 bar.clear()
                 return
             }
+            let (word, range) = picked
             let kind = LookupKind.rhymes(parent.rhymeMode)
             if bar.word == word, bar.range == range, bar.kind == kind { return }
             lookup(word: word, range: range, kind: kind)
         }
 
         func refreshSuggestions() {
-            guard let (word, range) = selectedWord() else { return }
+            guard let picked = selectedWord() else { return }
             lookup(word: word, range: range, kind: .rhymes(parent.rhymeMode))
         }
 
@@ -339,11 +340,11 @@ struct LyricEditor: UIViewRepresentable {
             case .section:
                 parent.controller.onSectionPrompt?()
             case .synonyms, .deepSearch:
-                guard let (word, range) = wordForLookup() else {
+                guard let picked = wordForLookup() else {
                     bar.show(message: "Select a word first")
                     return
                 }
-                lookup(word: word, range: range, kind: action == .synonyms ? .synonyms : .deepSearch)
+                lookup(word: picked.0, range: picked.1, kind: action == .synonyms ? .synonyms : .deepSearch)
             case .foldAll:
                 textView.setAllFolded(true)
             case .unfoldAll:
