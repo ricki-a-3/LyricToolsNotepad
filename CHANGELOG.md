@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+- **iPhone app** (sideload with a free Apple ID: see `docs/IOS.md`): same
+  syllable counts, rhymes, formatting and foldable sections as Windows; rhymes
+  appear above the keyboard when you select a word
+- **Sync between PC and iPhone** through a shared iCloud Drive (or OneDrive /
+  Dropbox) folder
+- Windows: lyrics changed on another device reload automatically; if you have
+  unsaved edits, the app asks which version to keep
+
 ## 1.0.0
 
 First release of LyricToolsNotepad as its own Windows app (formerly LyricTools++, a
