@@ -79,7 +79,7 @@ the portable zip on Windows and attaches them to that release (~10 min).
 ## License & credits
 
 MIT, see [`LICENSE`](LICENSE).
-Bundled: the [CMU Pronouncing Dictionary](data/CMUDICT_LICENSE.txt) and
+Bundled: the [CMU Pronouncing Dictionary](crates/lyrics-core/data/CMUDICT_LICENSE.txt) and
 [JetBrains Mono](assets/fonts/FONT_LICENSE.txt). Built with
 [egui](https://github.com/emilk/egui). The original Notepad++ plugin (LyricTools++)
 lives in [`legacy/notepadpp-plugin`](legacy/notepadpp-plugin).
