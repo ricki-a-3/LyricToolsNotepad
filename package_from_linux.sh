@@ -4,14 +4,14 @@
 #        apt install gcc-mingw-w64-x86-64 nsis zip
 set -euo pipefail
 cd "$(dirname "$0")"
-cargo test --release
+cargo test --workspace --release
 cargo build --release --target x86_64-pc-windows-gnu
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
 STAGE=dist/stage
 rm -rf dist && mkdir -p "$STAGE"
 cp target/x86_64-pc-windows-gnu/release/LyricToolsNotepad.exe "$STAGE/"
 cp LICENSE "$STAGE/LICENSE.txt"
-cp data/CMUDICT_LICENSE.txt assets/fonts/FONT_LICENSE.txt "$STAGE/"
+cp crates/lyrics-core/data/CMUDICT_LICENSE.txt assets/fonts/FONT_LICENSE.txt "$STAGE/"
 
 # Portable: the marker keeps settings.json beside the exe.
 NAME="LyricToolsNotepad-${VERSION}-portable-win64"

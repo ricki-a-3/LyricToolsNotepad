@@ -1,0 +1,19 @@
+[package]
+name = "lyrics-ffi"
+version = "1.1.0"
+edition = "2024"
+description = "Swift bindings (UniFFI) for the LyricToolsNotepad lyric engine"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+name = "lyrics_ffi"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+[dependencies]
+lyrics-core = { path = "../lyrics-core" }
+uniffi = { version = "0.32.2", features = ["cli"] }

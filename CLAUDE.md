@@ -1,11 +1,23 @@
 # LyricToolsNotepad
 
-Free, open-source (MIT) Windows lyric notepad. **100% Rust** (egui/eframe +
-wgpu), single self-contained exe. Released as v1.0.0 (installer + portable
+Free, open-source (MIT) lyric notepad for Windows and iOS. Windows app is
+**100% Rust** (egui/eframe + wgpu), single self-contained exe. iOS app is
+SwiftUI/UIKit on top of the same Rust engine (UniFFI); sync is a shared cloud
+folder (iCloud Drive via iCloud for Windows) — no backend. Sideloaded (free
+Apple ID, Sideloadly/AltStore), so no iCloud entitlements: the folder comes
+from the Files picker (security-scoped bookmark). Released as v1.0.0 (installer + portable
 zip). Successor to LyricTools++, a Notepad++ PythonScript plugin (v2.6.0).
 Official name everywhere (code, exe, installer, GitHub): **LyricToolsNotepad**.
 
 ## Layout
+- Cargo workspace: root = Windows app; `crates/lyrics-core` = shared engine
+  (`core/`, `markup`, `textutil`, `library` summaries, CMUdict in `data/`);
+  `crates/lyrics-ffi` = UniFFI Swift API (positions are UTF-16 at the boundary).
+- `ios/` — `build-rust.sh` (xcframework + bindings, macOS only),
+  `project.yml` (XcodeGen), `LyricToolsNotepad/*.swift`, tests. Built and
+  tested only in CI (`.github/workflows/ios.yml`, macOS runner) → unsigned
+  `.ipa` artifact. `annotate.sh` turns compiler errors into annotations
+  (CI logs can't be downloaded from cloud sessions; annotations can).
 - `src/core/` — lyric logic: `mod.rs` syllables/headers/tokens, `dict.rs`
   embedded CMUdict + indexes, `rhymes.rs` offline perfect/near + spelling
   fallback, `difflib.rs` exact port of Python `SequenceMatcher.ratio`,
@@ -26,7 +38,7 @@ Official name everywhere (code, exe, installer, GitHub): **LyricToolsNotepad**.
 - `legacy/` — the Notepad++ plugin and the PySide6 prototype. Reference only.
 
 ## Commands
-- `cargo test` · `cargo clippy --release -- -D warnings` · `cargo fmt --check` (CI runs all three)
+- `cargo test --workspace` · `cargo clippy --workspace -- -D warnings` · `cargo fmt --check` (CI runs all three)
 - `build_release.bat` (Windows) / `./package_from_linux.sh` → `dist/`
 - Release: bump `Cargo.toml` version, push; then publish a GitHub release tagged
   `vX.Y.Z` (web UI) → `release.yml` builds and attaches the installer + zip.
@@ -49,6 +61,8 @@ Official name everywhere (code, exe, installer, GitHub): **LyricToolsNotepad**.
    known selection when focus moves to a toolbar button (otherwise one-shot
    lookups cancel themselves).
 7. Files are plain text; formatting is markers (`**b**`, `*i*`, `__u__`, `#`).
+8. Edits from other devices: both apps watch the open file's mtime. No local
+   edits → reload; local edits → ask (never silently overwrite either side).
 
 ## User preferences
 Concise, direct. Iterative and test-driven. Push back when an approach seems off.

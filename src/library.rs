@@ -4,8 +4,8 @@
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use crate::markup::{self, LineKind};
 use crate::textutil::decode_text;
+pub use lyrics_core::library::{LyricSummary, file_name_for, relative_time, summarize, template};
 
 pub const EXTENSIONS: [&str; 3] = ["txt", "lyrics", "md"];
 const MAX_DEPTH: usize = 3;
@@ -69,68 +69,14 @@ pub fn read_card(path: &Path) -> LyricFile {
     }
     let (text, _) = decode_text(&bytes);
     let stem = path.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
-    let mut card = summarize(&text, &stem);
-    card.path = path.to_path_buf();
-    card.modified = std::fs::metadata(path).and_then(|m| m.modified()).ok();
-    card
-}
-
-/// Title, section names and a two-line preview from a file's text.
-pub fn summarize(text: &str, fallback_title: &str) -> LyricFile {
-    let mut title = None;
-    let mut sections = Vec::new();
-    let mut preview = Vec::new();
-    for line in text.lines() {
-        match markup::line_kind(line) {
-            LineKind::Heading(1) if title.is_none() => title = Some(markup::header_title(line)),
-            LineKind::Heading(_) | LineKind::Section => {
-                let name = markup::header_title(line);
-                if !name.is_empty() && !sections.contains(&name) {
-                    sections.push(name);
-                }
-            }
-            LineKind::Plain if preview.len() < 2 && !line.trim().is_empty() => {
-                preview.push(strip_markers(line.trim()));
-            }
-            _ => {}
-        }
-    }
+    let summary = summarize(&text, &stem);
     LyricFile {
-        path: PathBuf::new(),
-        title: title.unwrap_or_else(|| fallback_title.to_string()),
-        sections,
-        preview,
-        modified: None,
+        path: path.to_path_buf(),
+        title: summary.title,
+        sections: summary.sections,
+        preview: summary.preview,
+        modified: std::fs::metadata(path).and_then(|m| m.modified()).ok(),
     }
-}
-
-fn strip_markers(line: &str) -> String {
-    markup::inline_spans(line).into_iter().filter(|(_, s)| !s.marker).map(|(r, _)| &line[r]).collect()
-}
-
-/// "just now", "5 min ago", "3 h ago", "yesterday", "12 days ago"...
-pub fn relative_time(modified: Option<SystemTime>) -> String {
-    let Some(secs) = modified.and_then(|m| SystemTime::now().duration_since(m).ok()).map(|d| d.as_secs()) else {
-        return String::new();
-    };
-    match secs {
-        0..60 => "just now".into(),
-        60..3600 => format!("{} min ago", secs / 60),
-        3600..86_400 => format!("{} h ago", secs / 3600),
-        86_400..172_800 => "yesterday".into(),
-        _ if secs < 60 * 86_400 => format!("{} days ago", secs / 86_400),
-        _ => format!("{} months ago", secs / (30 * 86_400)),
-    }
-}
-
-/// A file name from a song title: keeps letters, digits, spaces and
-/// `-_'()&,.`; never empty.
-pub fn file_name_for(title: &str) -> String {
-    let cleaned: String =
-        title.trim().chars().map(|c| if c.is_alphanumeric() || " -_'()&,.".contains(c) { c } else { ' ' }).collect();
-    let cleaned = cleaned.split_whitespace().collect::<Vec<_>>().join(" ");
-    let cleaned = cleaned.trim_matches('.').to_string();
-    if cleaned.is_empty() { "Untitled".into() } else { cleaned }
 }
 
 /// `dir/name.txt`, or `dir/name (2).txt` etc. if that's taken.
@@ -142,31 +88,12 @@ pub fn unique_path(dir: &Path, name: &str) -> PathBuf {
     (2..).map(|n| dir.join(format!("{name} ({n}).txt"))).find(|p| !p.exists()).unwrap()
 }
 
-/// Starter text for a new lyric.
-pub fn template(title: &str) -> String {
-    format!("# {}\n\n[Verse 1]\n", title.trim())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn summarizes_a_lyric() {
-        let card = summarize(
-            "# Late Night\n\n[Verse 1]\nI been **droppin'** bars\nsecond line\nthird\n[Chorus]\nhook",
-            "file",
-        );
-        assert_eq!(card.title, "Late Night");
-        assert_eq!(card.sections, vec!["Verse 1", "Chorus"]);
-        assert_eq!(card.preview, vec!["I been droppin' bars", "second line"]);
-        assert_eq!(summarize("just words", "my-song").title, "my-song");
-    }
-
-    #[test]
     fn names_and_paths() {
-        assert_eq!(file_name_for("  Late Night: Pt. 2?? "), "Late Night Pt. 2");
-        assert_eq!(file_name_for("///"), "Untitled");
         let dir = tempfile::tempdir().unwrap();
         let a = unique_path(dir.path(), "Song");
         assert_eq!(a.file_name().unwrap(), "Song.txt");

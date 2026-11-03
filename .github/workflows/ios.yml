@@ -1,0 +1,69 @@
+name: iOS
+
+# Builds the iPhone app on GitHub's macOS machines: runs the unit tests in the
+# simulator and produces an unsigned .ipa to sideload (Sideloadly / AltStore).
+on:
+  push:
+    branches: [main, ios]
+    paths: ["ios/**", "crates/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "assets/fonts/**", ".github/workflows/ios.yml"]
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@1.97.0
+        with:
+          targets: aarch64-apple-ios, aarch64-apple-ios-sim
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust engine for iOS
+        run: ios/build-rust.sh
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          cd ios && xcodegen
+
+      - name: Unit tests (simulator)
+        run: |
+          set -o pipefail
+          cd ios
+          sim=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+[^(]*' | head -1 | sed 's/ *$//')
+          echo "Using simulator: $sim"
+          xcodebuild test -project LyricToolsNotepad.xcodeproj -scheme LyricToolsNotepad \
+            -destination "platform=iOS Simulator,name=$sim" CODE_SIGNING_ALLOWED=NO 2>&1 | tee ../test.log \
+            || { ./annotate.sh ../test.log; exit 1; }
+
+      - name: Build unsigned .ipa
+        run: |
+          set -o pipefail
+          cd ios
+          xcodebuild build -project LyricToolsNotepad.xcodeproj -scheme LyricToolsNotepad \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" 2>&1 | tee ../build.log \
+            || { ./annotate.sh ../build.log; exit 1; }
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' ../Cargo.toml | head -1)
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/LyricToolsNotepad.app Payload/
+          zip -qry "../LyricToolsNotepad-${version}-ios-unsigned.ipa" Payload
+          ls -la ../*.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LyricToolsNotepad-ios
+          path: "*.ipa"
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: "*.ipa"

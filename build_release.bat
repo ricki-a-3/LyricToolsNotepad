@@ -6,7 +6,7 @@ setlocal
 cd /d "%~dp0"
 
 echo [1/4] Running tests...
-cargo test --release
+cargo test --workspace --release
 if errorlevel 1 goto :fail
 
 echo [2/4] Building...
@@ -19,7 +19,7 @@ if exist dist rmdir /s /q dist
 mkdir "%STAGE%"
 copy /y target\release\LyricToolsNotepad.exe "%STAGE%\" >nul
 copy /y LICENSE "%STAGE%\LICENSE.txt" >nul
-copy /y data\CMUDICT_LICENSE.txt "%STAGE%\" >nul
+copy /y crates\lyrics-core\data\CMUDICT_LICENSE.txt "%STAGE%\" >nul
 copy /y assets\fonts\FONT_LICENSE.txt "%STAGE%\" >nul
 
 echo [3/4] Portable zip...
