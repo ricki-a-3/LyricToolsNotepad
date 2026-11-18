@@ -157,6 +157,8 @@ pub struct LyricApp {
     pub(crate) set_cursor: Option<(usize, usize)>,
     pub(crate) pending_state: Option<egui::text_edit::TextEditState>,
     pub(crate) focus_editor: bool,
+    /// Set while Ctrl+wheel is resizing text; settings are saved once it stops.
+    pub(crate) font_size_changed_at: Option<f64>,
     pub(crate) counts: HashMap<String, u32>,
     pub(crate) folds: HashSet<(String, usize)>,
 
@@ -207,6 +209,7 @@ impl LyricApp {
             set_cursor: None,
             pending_state: None,
             focus_editor: false,
+            font_size_changed_at: None,
             counts: HashMap::new(),
             folds: HashSet::new(),
             library: Vec::new(),
@@ -569,27 +572,51 @@ impl LyricApp {
                 ui.label("MIT licensed. Built with Rust + egui.");
             });
 
-            // View tabs, right-aligned.
+            // View tabs + Pin, right-aligned. In a narrow window (say, docked
+            // beside FL Studio) they shrink to icons so they don't run into
+            // the menus.
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let editor_label = if self.has_document() {
+                    format!("{}{}", self.display_name(), if self.dirty { " \u{2022}" } else { "" })
+                } else {
+                    "Editor".to_string()
+                };
+                let tabs = [
+                    (View::Home, "\u{1F3E0}", "Home".to_string()),
+                    (View::Editor, "\u{270F}", editor_label),
+                    (View::Settings, "\u{2699}", "Settings".to_string()),
+                ];
+                let font = egui::TextStyle::Button.resolve(ui.style());
+                let pad = ui.spacing().button_padding.x * 2.0 + ui.spacing().item_spacing.x;
+                let full_width: f32 = tabs
+                    .iter()
+                    .map(|(_, icon, name)| format!("{icon} {name}"))
+                    .chain(["\u{1F4CC} Pin".to_string()])
+                    .map(|t| ctx.fonts_mut(|f| f.layout_no_wrap(t, font.clone(), Color32::WHITE).size().x) + pad)
+                    .sum::<f32>()
+                    + 12.0;
+                let compact = full_width > ui.available_width();
+
                 let pinned = self.settings.always_on_top;
                 let tip = if pinned {
                     "Pinned on top of other windows. Click to unpin. (Ctrl+Shift+P)"
                 } else {
-                    "Keep LyricToolsNotepad on top of other windows, like FL Studio (Ctrl+Shift+P)"
+                    "Pin: keep LyricToolsNotepad on top of other windows, like FL Studio (Ctrl+Shift+P)"
                 };
-                if ui.add(egui::Button::selectable(pinned, "📌 Pin")).on_hover_text(tip).clicked() {
+                let pin_label = if compact { "\u{1F4CC}" } else { "\u{1F4CC} Pin" };
+                if ui.add(egui::Button::selectable(pinned, pin_label)).on_hover_text(tip).clicked() {
                     self.toggle_always_on_top(&ctx);
                 }
                 ui.separator();
-                for (view, label) in
-                    [(View::Settings, "⚙ Settings"), (View::Editor, "✏ Editor"), (View::Home, "🏠 Home")]
-                {
-                    let label = if view == View::Editor && self.has_document() {
-                        format!("✏ {}{}", self.display_name(), if self.dirty { " •" } else { "" })
+                for (view, icon, name) in tabs.into_iter().rev() {
+                    let label = if compact {
+                        if view == View::Editor && self.dirty { format!("{icon}\u{2022}") } else { icon.to_string() }
                     } else {
-                        label.to_string()
+                        format!("{icon} {name}")
                     };
-                    if ui.add(egui::Button::selectable(self.view == view, label)).clicked() {
+                    let resp = ui.add(egui::Button::selectable(self.view == view, label));
+                    let resp = if compact { resp.on_hover_text(name) } else { resp };
+                    if resp.clicked() {
                         self.view = view;
                         if view == View::Home {
                             self.library_stale = true;

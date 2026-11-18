@@ -11,6 +11,9 @@
   unsaved edits, the app asks which version to keep
 - Windows: **📌 Pin** (top bar, Ctrl+Shift+P) keeps the window on top of other
   apps, so it stays visible while you work in FL Studio; remembered between runs
+- Windows: tidy in a narrow window: the tabs shrink to icons and the toolbar
+  stays on one row, with what doesn't fit under **More…**
+- Windows: **Ctrl + mouse wheel** resizes the lyric text
 
 ## 1.0.0
 

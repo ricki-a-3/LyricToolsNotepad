@@ -58,7 +58,7 @@ Sideloadly (free Apple ID), and sync lyrics with your PC through iCloud Drive.
 | Ctrl+1 / 2 / 3 | Perfect / Near / Near + Perfect rhymes |
 | F6 | Rhymes for the word at the cursor |
 | F7 / F8 | Synonyms / Deep Search (online) |
-| Ctrl+= / Ctrl+- / Ctrl+0 | Text size |
+| Ctrl+= / Ctrl+- / Ctrl+0, or Ctrl + mouse wheel | Text size |
 | Ctrl+Shift+P | 📌 Pin the window on top of other apps (e.g. FL Studio) |
 
 ## Building from source
