@@ -138,6 +138,8 @@ pub struct LyricApp {
     /// The file changed on another device while we had unsaved edits.
     pub(crate) changed_elsewhere: bool,
     disk_checked_at: f64,
+    /// Frames drawn so far (used to re-apply "pinned on top" once visible).
+    frames: u64,
 
     pub(crate) settings: Settings,
     settings_path: PathBuf,
@@ -190,6 +192,7 @@ impl LyricApp {
             disk_mtime: None,
             changed_elsewhere: false,
             disk_checked_at: 0.0,
+            frames: 0,
             settings,
             settings_path,
             view: View::Home,
@@ -508,6 +511,9 @@ impl LyricApp {
         if pressed(cmd, Key::Q) {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
+        if pressed(cmd | Modifiers::SHIFT, Key::P) {
+            self.toggle_always_on_top(ctx);
+        }
     }
 
     fn menu_bar(&mut self, ui: &mut egui::Ui) {
@@ -565,6 +571,16 @@ impl LyricApp {
 
             // View tabs, right-aligned.
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let pinned = self.settings.always_on_top;
+                let tip = if pinned {
+                    "Pinned on top of other windows. Click to unpin. (Ctrl+Shift+P)"
+                } else {
+                    "Keep LyricToolsNotepad on top of other windows, like FL Studio (Ctrl+Shift+P)"
+                };
+                if ui.add(egui::Button::selectable(pinned, "📌 Pin")).on_hover_text(tip).clicked() {
+                    self.toggle_always_on_top(&ctx);
+                }
+                ui.separator();
                 for (view, label) in
                     [(View::Settings, "⚙ Settings"), (View::Editor, "✏ Editor"), (View::Home, "🏠 Home")]
                 {
@@ -606,6 +622,16 @@ impl LyricApp {
                 });
             });
         ui.add_space(4.0);
+    }
+
+    /// Keep the window above other apps (or stop doing so); remembered.
+    pub(crate) fn toggle_always_on_top(&mut self, ctx: &egui::Context) {
+        self.settings.always_on_top = !self.settings.always_on_top;
+        self.save_settings();
+        let level =
+            if self.settings.always_on_top { egui::WindowLevel::AlwaysOnTop } else { egui::WindowLevel::Normal };
+        ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(level));
+        self.flash(ctx, if self.settings.always_on_top { "Pinned on top of other windows" } else { "Unpinned" });
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui) {
@@ -704,6 +730,15 @@ impl LyricApp {
 impl eframe::App for LyricApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
+        // Some window managers ignore "always on top" requested before the
+        // window is visible, so ask again once it's on screen.
+        self.frames += 1;
+        if self.frames == 3 && self.settings.always_on_top {
+            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
+        }
+        if self.frames < 3 {
+            ctx.request_repaint();
+        }
         if self.applied_dark != Some(self.settings.dark) {
             apply_theme(&ctx, self.settings.dark);
             self.applied_dark = Some(self.settings.dark);

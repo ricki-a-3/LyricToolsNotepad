@@ -7,13 +7,17 @@ use lyrictoolsnotepad::settings::{Settings, settings_path};
 
 fn main() -> eframe::Result {
     let open = std::env::args_os().skip(1).find(|a| !a.to_string_lossy().starts_with('-')).map(Into::into);
-    let size = Settings::load(&settings_path()).window_size.unwrap_or([900.0, 700.0]);
+    let settings = Settings::load(&settings_path());
+    let size = settings.window_size.unwrap_or([900.0, 700.0]);
 
     let mut viewport = egui::ViewportBuilder::default()
         .with_title(APP_NAME)
         .with_inner_size(size)
         .with_min_inner_size([420.0, 300.0])
         .with_drag_and_drop(true);
+    if settings.always_on_top {
+        viewport = viewport.with_always_on_top();
+    }
     if let Some(icon) = app_icon() {
         viewport = viewport.with_icon(icon);
     }

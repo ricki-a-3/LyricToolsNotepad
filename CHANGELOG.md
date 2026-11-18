@@ -9,6 +9,8 @@
   Dropbox) folder
 - Windows: lyrics changed on another device reload automatically; if you have
   unsaved edits, the app asks which version to keep
+- Windows: **📌 Pin** (top bar, Ctrl+Shift+P) keeps the window on top of other
+  apps, so it stays visible while you work in FL Studio; remembered between runs
 
 ## 1.0.0
 
