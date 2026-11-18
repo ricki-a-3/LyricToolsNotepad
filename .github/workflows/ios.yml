@@ -4,7 +4,7 @@ name: iOS
 # simulator and produces an unsigned .ipa to sideload (Sideloadly / AltStore).
 on:
   push:
-    branches: [main, ios]
+    branches: [main]
     paths: ["ios/**", "crates/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "assets/fonts/**", ".github/workflows/ios.yml"]
   pull_request:
   workflow_dispatch:

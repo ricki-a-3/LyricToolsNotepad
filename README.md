@@ -16,7 +16,8 @@ Grab the latest from the **Releases** page:
   rights needed. Adds a Start Menu shortcut and (optional) a right-click
   **Open with LyricToolsNotepad** entry for `.txt` files.
 - **`LyricToolsNotepad-<version>-portable-win64.zip`**: unzip and run
-  `LyricToolsNotepad.exe`. Settings stay in that folder.
+  `LyricToolsNotepad.exe`; settings stay in that folder. The installer is
+  inside the zip too, so this one download covers both.
 
 The app isn't code-signed yet, so Windows SmartScreen may warn on first run:
 click **More info → Run anyway**.
