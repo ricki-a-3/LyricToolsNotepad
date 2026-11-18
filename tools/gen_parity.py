@@ -65,7 +65,7 @@ fixture = {
     "deep": {a: core.find_words_deep(a, 150) for a in ["yeezy", "bite", "night", "orange"]},
     "synonyms": {a: core.find_words(a, "synonym", 60) for a in ["night", "Night", "money"]},
 }
-out = os.path.join(ROOT, "tests", "fixtures", "parity.json")
+out = os.path.join(ROOT, "crates", "lyrics-core", "tests", "fixtures", "parity.json")
 with open(out, "w", encoding="utf-8") as fh:
     json.dump({"fake_datamuse": FAKE, **fixture}, fh, ensure_ascii=False, indent=0, sort_keys=True)
 print(out, sum(len(v) for v in fixture.values()), "cases")

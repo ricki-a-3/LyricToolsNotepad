@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0
+
+- **iPhone app** (sideload with a free Apple ID: see `docs/IOS.md`): same
+  syllable counts, rhymes, formatting and foldable sections as Windows; rhymes
+  appear above the keyboard when you select a word
+- **Sync between PC and iPhone** through a shared iCloud Drive (or OneDrive /
+  Dropbox) folder
+- Windows: lyrics changed on another device reload automatically; if you have
+  unsaved edits, the app asks which version to keep
+- Windows: **📌 Pin** (top bar, Ctrl+Shift+P) keeps the window on top of other
+  apps, so it stays visible while you work in FL Studio; remembered between runs
+- Windows: tidy in a narrow window: the tabs shrink to icons and the toolbar
+  stays on one row, with what doesn't fit under **More…**
+- Windows: **Ctrl + mouse wheel** resizes the lyric text
+
 ## 1.0.0
 
 First release of LyricToolsNotepad as its own Windows app (formerly LyricTools++, a

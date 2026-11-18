@@ -188,6 +188,128 @@ fn build_job(text: &str, folds: &HashSet<(String, usize)>, size: f32, pal: &Pale
     job
 }
 
+const TOOL_TEXT_SIZE: f32 = 14.0;
+const MIN_FONT_SIZE: f32 = 8.0;
+const MAX_FONT_SIZE: f32 = 60.0;
+const MORE_LABEL: &str = "More\u{2026}";
+
+/// The editor toolbar's buttons, in display order.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Tool {
+    Perfect,
+    Near,
+    Report,
+    Synonyms,
+    Deep,
+    Bold,
+    Italic,
+    Underline,
+    Heading,
+    Section,
+    FoldAll,
+    UnfoldAll,
+}
+
+impl Tool {
+    const ALL: [Tool; 12] = [
+        Tool::Perfect,
+        Tool::Near,
+        Tool::Report,
+        Tool::Synonyms,
+        Tool::Deep,
+        Tool::Bold,
+        Tool::Italic,
+        Tool::Underline,
+        Tool::Heading,
+        Tool::Section,
+        Tool::FoldAll,
+        Tool::UnfoldAll,
+    ];
+
+    /// Separators go between groups.
+    fn group(self) -> u8 {
+        match self {
+            Tool::Perfect | Tool::Near | Tool::Report => 0,
+            Tool::Synonyms | Tool::Deep => 1,
+            Tool::Bold | Tool::Italic | Tool::Underline | Tool::Heading | Tool::Section => 2,
+            Tool::FoldAll | Tool::UnfoldAll => 3,
+        }
+    }
+
+    fn label(self) -> &'static str {
+        match self {
+            Tool::Perfect => "Perfect",
+            Tool::Near => "Near",
+            Tool::Report => "Near + Perfect",
+            Tool::Synonyms => "Synonyms",
+            Tool::Deep => "Deep Search",
+            Tool::Bold => "B",
+            Tool::Italic => "I",
+            Tool::Underline => "U",
+            Tool::Heading => "Heading",
+            Tool::Section => "+ Section",
+            Tool::FoldAll => "Fold All",
+            Tool::UnfoldAll => "Unfold All",
+        }
+    }
+
+    fn rich_label(self) -> egui::RichText {
+        let text = egui::RichText::new(self.label()).size(TOOL_TEXT_SIZE);
+        match self {
+            Tool::Bold => text.strong(),
+            Tool::Italic => text.italics(),
+            Tool::Underline => text.underline(),
+            _ => text,
+        }
+    }
+
+    /// Full names for the "More" dropdown, where B / I / U alone would be cryptic.
+    fn menu_label(self) -> &'static str {
+        match self {
+            Tool::Bold => "Bold",
+            Tool::Italic => "Italic",
+            Tool::Underline => "Underline",
+            Tool::Report => "Near + Perfect Rhymes",
+            Tool::Perfect => "Perfect Rhymes",
+            Tool::Near => "Near Rhymes",
+            other => other.label(),
+        }
+    }
+
+    fn shortcut(self) -> &'static str {
+        match self {
+            Tool::Perfect => "Ctrl+1",
+            Tool::Near => "Ctrl+2",
+            Tool::Report => "Ctrl+3",
+            Tool::Synonyms => "F7",
+            Tool::Deep => "F8",
+            Tool::Bold => "Ctrl+B",
+            Tool::Italic => "Ctrl+I",
+            Tool::Underline => "Ctrl+U",
+            Tool::Heading => "Ctrl+Shift+H",
+            Tool::Section => "Ctrl+Shift+N",
+            Tool::FoldAll | Tool::UnfoldAll => "",
+        }
+    }
+
+    fn tip(self) -> &'static str {
+        match self {
+            Tool::Perfect => "Perfect rhymes (Ctrl+1)",
+            Tool::Near => "Near / slant rhymes (Ctrl+2)",
+            Tool::Report => "Near + perfect rhymes (Ctrl+3)",
+            Tool::Synonyms => "Synonyms for the selected word, online (F7)",
+            Tool::Deep => "The biggest rhyme list for the selected word: offline + online (F8)",
+            Tool::Bold => "Bold (Ctrl+B)",
+            Tool::Italic => "Italic (Ctrl+I)",
+            Tool::Underline => "Underline (Ctrl+U)",
+            Tool::Heading => "Make this line a heading; click again for a smaller one (Ctrl+Shift+H)",
+            Tool::Section => "Add a titled, foldable section like [Chorus] (Ctrl+Shift+N)",
+            Tool::FoldAll => "Collapse every section to its title",
+            Tool::UnfoldAll => "Expand every section",
+        }
+    }
+}
+
 impl LyricApp {
     // --- lookups ---------------------------------------------------------------------
 
@@ -390,7 +512,7 @@ impl LyricApp {
         self.settings.font_size = if delta == 0.0 {
             Settings::default().font_size
         } else {
-            (self.settings.font_size + delta).clamp(8.0, 48.0)
+            (self.settings.font_size + delta).clamp(MIN_FONT_SIZE, MAX_FONT_SIZE)
         };
         self.save_settings();
     }
@@ -530,57 +652,98 @@ impl LyricApp {
         });
     }
 
+    fn tool_active(&self, tool: Tool) -> bool {
+        match tool {
+            Tool::Perfect => self.settings.mode == Mode::Perfect,
+            Tool::Near => self.settings.mode == Mode::Near,
+            Tool::Report => self.settings.mode == Mode::Report,
+            _ => false,
+        }
+    }
+
+    fn run_tool(&mut self, ctx: &egui::Context, tool: Tool) {
+        match tool {
+            Tool::Perfect => self.set_mode(ctx, Mode::Perfect),
+            Tool::Near => self.set_mode(ctx, Mode::Near),
+            Tool::Report => self.set_mode(ctx, Mode::Report),
+            Tool::Synonyms => self.one_shot(ctx, Mode::Synonyms),
+            Tool::Deep => self.one_shot(ctx, Mode::Deep),
+            Tool::Bold => self.wrap_selection("**"),
+            Tool::Italic => self.wrap_selection("*"),
+            Tool::Underline => self.wrap_selection("__"),
+            Tool::Heading => self.cycle_heading(),
+            Tool::Section => self.prompt = Some(Prompt::Section(String::new())),
+            Tool::FoldAll => self.fold_all(true),
+            Tool::UnfoldAll => self.fold_all(false),
+        }
+    }
+
+    /// One row of tools. Whatever doesn't fit the window's width goes into a
+    /// "More" dropdown at the end (so a narrow window beside a DAW stays tidy).
     pub(crate) fn editor_toolbar(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
-        ui.horizontal_wrapped(|ui| {
-            let tool = |ui: &mut egui::Ui, text: egui::RichText, on: bool, tip: &str| -> bool {
-                ui.add(egui::Button::selectable(on, text.size(14.0)).min_size(Vec2::new(0.0, 28.0)))
-                    .on_hover_text(tip)
-                    .clicked()
-            };
-            let t = egui::RichText::new;
-            let mode = self.settings.mode;
-            if tool(ui, t("Perfect"), mode == Mode::Perfect, "Perfect rhymes (Ctrl+1)") {
-                self.set_mode(&ctx, Mode::Perfect);
+        let font = egui::FontId::proportional(TOOL_TEXT_SIZE);
+        let pad = ui.spacing().button_padding.x * 2.0;
+        let gap = ui.spacing().item_spacing.x;
+        let width_of =
+            |text: &str| ctx.fonts_mut(|f| f.layout_no_wrap(text.into(), font.clone(), Color32::WHITE).size().x) + pad;
+        let separator = gap * 2.0 + 2.0;
+        let more_width = width_of(MORE_LABEL) + gap;
+
+        // How many tools fit, in order (a separator between groups). Groups
+        // move into "More" whole, so related buttons (B / I / U) stay together.
+        let available = ui.available_width();
+        let widths: Vec<f32> = Tool::ALL.iter().map(|t| width_of(t.label())).collect();
+        let row_width = |n: usize| -> f32 {
+            (0..n)
+                .map(|i| {
+                    widths[i]
+                        + gap
+                        + if i > 0 && Tool::ALL[i].group() != Tool::ALL[i - 1].group() { separator } else { 0.0 }
+                })
+                .sum()
+        };
+        let shown = if row_width(Tool::ALL.len()) <= available {
+            Tool::ALL.len()
+        } else {
+            (0..Tool::ALL.len())
+                .rev()
+                .filter(|&n| n == 0 || Tool::ALL[n].group() != Tool::ALL[n - 1].group())
+                .find(|&n| row_width(n) + more_width <= available)
+                .unwrap_or(0)
+        };
+
+        let mut clicked = None;
+        ui.horizontal(|ui| {
+            for (i, &tool) in Tool::ALL[..shown].iter().enumerate() {
+                if i > 0 && tool.group() != Tool::ALL[i - 1].group() {
+                    ui.separator();
+                }
+                let button =
+                    egui::Button::selectable(self.tool_active(tool), tool.rich_label()).min_size(Vec2::new(0.0, 28.0));
+                if ui.add(button).on_hover_text(tool.tip()).clicked() {
+                    clicked = Some(tool);
+                }
             }
-            if tool(ui, t("Near"), mode == Mode::Near, "Near / slant rhymes (Ctrl+2)") {
-                self.set_mode(&ctx, Mode::Near);
-            }
-            if tool(ui, t("Near + Perfect"), mode == Mode::Report, "Near + perfect rhymes (Ctrl+3)") {
-                self.set_mode(&ctx, Mode::Report);
-            }
-            ui.separator();
-            if tool(ui, t("Synonyms"), false, "Synonyms for the selected word, online (F7)") {
-                self.one_shot(&ctx, Mode::Synonyms);
-            }
-            if tool(ui, t("Deep Search"), false, "The biggest rhyme list for the selected word: offline + online (F8)")
-            {
-                self.one_shot(&ctx, Mode::Deep);
-            }
-            ui.separator();
-            if tool(ui, t("B").strong(), false, "Bold (Ctrl+B)") {
-                self.wrap_selection("**");
-            }
-            if tool(ui, t("I").italics(), false, "Italic (Ctrl+I)") {
-                self.wrap_selection("*");
-            }
-            if tool(ui, t("U").underline(), false, "Underline (Ctrl+U)") {
-                self.wrap_selection("__");
-            }
-            if tool(ui, t("Heading"), false, "Make this line a heading; click again for a smaller one (Ctrl+Shift+H)") {
-                self.cycle_heading();
-            }
-            if tool(ui, t("+ Section"), false, "Add a titled, foldable section like [Chorus] (Ctrl+Shift+N)") {
-                self.prompt = Some(Prompt::Section(String::new()));
-            }
-            ui.separator();
-            if tool(ui, t("Fold All"), false, "Collapse every section to its title") {
-                self.fold_all(true);
-            }
-            if tool(ui, t("Unfold All"), false, "Expand every section") {
-                self.fold_all(false);
+            if shown < Tool::ALL.len() {
+                ui.menu_button(egui::RichText::new(MORE_LABEL).size(TOOL_TEXT_SIZE), |ui| {
+                    for (i, &tool) in Tool::ALL[shown..].iter().enumerate() {
+                        if i > 0 && tool.group() != Tool::ALL[shown + i - 1].group() {
+                            ui.separator();
+                        }
+                        let item = egui::Button::selectable(self.tool_active(tool), tool.menu_label())
+                            .shortcut_text(tool.shortcut());
+                        if ui.add(item).on_hover_text(tool.tip()).clicked() {
+                            clicked = Some(tool);
+                            ui.close();
+                        }
+                    }
+                });
             }
         });
+        if let Some(tool) = clicked {
+            self.run_tool(&ctx, tool);
+        }
     }
 
     pub(crate) fn editor_status(&mut self, ui: &mut egui::Ui) {
@@ -613,6 +776,23 @@ impl LyricApp {
         if self.focus_editor && self.prompt.is_none() {
             ctx.memory_mut(|m| m.request_focus(id));
             ctx.request_repaint();
+        }
+
+        // Ctrl + mouse wheel (or trackpad pinch) resizes the lyric text.
+        let zoom = ctx.input(|i| i.zoom_delta());
+        if zoom != 1.0 && ui.rect_contains_pointer(ui.max_rect()) {
+            let size = (self.settings.font_size * zoom).clamp(MIN_FONT_SIZE, MAX_FONT_SIZE);
+            self.settings.font_size = (size * 2.0).round() / 2.0;
+            self.font_size_changed_at = Some(ctx.input(|i| i.time));
+        }
+        // Save once the wheel stops, not on every notch.
+        if let Some(at) = self.font_size_changed_at
+            && ctx.input(|i| i.time) - at > 0.5
+        {
+            self.font_size_changed_at = None;
+            self.save_settings();
+        } else if self.font_size_changed_at.is_some() {
+            ctx.request_repaint_after(std::time::Duration::from_millis(600));
         }
 
         let size = self.settings.font_size;

@@ -6,7 +6,7 @@ setlocal
 cd /d "%~dp0"
 
 echo [1/4] Running tests...
-cargo test --release
+cargo test --workspace --release
 if errorlevel 1 goto :fail
 
 echo [2/4] Building...
@@ -19,21 +19,26 @@ if exist dist rmdir /s /q dist
 mkdir "%STAGE%"
 copy /y target\release\LyricToolsNotepad.exe "%STAGE%\" >nul
 copy /y LICENSE "%STAGE%\LICENSE.txt" >nul
-copy /y data\CMUDICT_LICENSE.txt "%STAGE%\" >nul
+copy /y crates\lyrics-core\data\CMUDICT_LICENSE.txt "%STAGE%\" >nul
 copy /y assets\fonts\FONT_LICENSE.txt "%STAGE%\" >nul
 
-echo [3/4] Portable zip...
+echo [3/4] Installer...
+set SETUP=LyricToolsNotepad-%VERSION%-setup.exe
+set MAKENSIS=makensis
+where makensis >nul 2>nul || set MAKENSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
+%MAKENSIS% -V2 -DVERSION=%VERSION% -DSTAGE=..\%STAGE% -DOUTFILE=..\dist\%SETUP% installer\LyricToolsNotepad.nsi
+if errorlevel 1 echo (Installer skipped: install NSIS 3 to build it.)
+
+echo [4/4] Portable zip (with the installer inside)...
 set NAME=LyricToolsNotepad-%VERSION%-portable-win64
 xcopy /e /i /q "%STAGE%" "dist\%NAME%" >nul
 echo This copy of LyricToolsNotepad is portable: settings are stored in settings.json in this folder.> "dist\%NAME%\portable.txt"
+if exist "dist\%SETUP%" (
+    echo To install it instead, run %SETUP%.>> "dist\%NAME%\portable.txt"
+    copy /y "dist\%SETUP%" "dist\%NAME%\" >nul
+)
 powershell -NoProfile -Command "Compress-Archive -Path 'dist\%NAME%' -DestinationPath 'dist\%NAME%.zip'"
 if errorlevel 1 goto :fail
-
-echo [4/4] Installer...
-set MAKENSIS=makensis
-where makensis >nul 2>nul || set MAKENSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
-%MAKENSIS% -V2 -DVERSION=%VERSION% -DSTAGE=..\%STAGE% -DOUTFILE=..\dist\LyricToolsNotepad-%VERSION%-setup.exe installer\LyricToolsNotepad.nsi
-if errorlevel 1 echo (Installer skipped: install NSIS 3 to build it.)
 
 echo.
 echo Done. See the dist folder.

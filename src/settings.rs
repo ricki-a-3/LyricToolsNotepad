@@ -29,6 +29,8 @@ pub struct Settings {
     pub recent: Vec<PathBuf>,
     pub last_dir: Option<PathBuf>,
     pub window_size: Option<[f32; 2]>,
+    /// Keep the window above other apps (e.g. a DAW like FL Studio).
+    pub always_on_top: bool,
     /// Folder the Home dashboard lists and new lyrics are saved to.
     pub lyrics_dir: Option<PathBuf>,
     pub start_page: StartPage,
@@ -45,6 +47,7 @@ impl Default for Settings {
             recent: Vec::new(),
             last_dir: None,
             window_size: None,
+            always_on_top: false,
             lyrics_dir: None,
             start_page: StartPage::Home,
             last_file: None,

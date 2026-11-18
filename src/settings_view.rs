@@ -64,7 +64,7 @@ impl LyricApp {
             changed |= ui.checkbox(&mut self.settings.wrap, "Wrap long lines").changed();
             ui.horizontal(|ui| {
                 ui.label("Text size");
-                changed |= ui.add(egui::Slider::new(&mut self.settings.font_size, 10.0..=36.0).step_by(1.0)).changed();
+                changed |= ui.add(egui::Slider::new(&mut self.settings.font_size, 8.0..=60.0).step_by(0.5)).changed();
                 if ui.small_button("Reset").clicked() {
                     self.settings.font_size = Settings::default().font_size;
                     changed = true;
